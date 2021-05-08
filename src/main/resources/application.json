@@ -1,0 +1,8 @@
+{
+  "db": {
+    "driver": "org.postgresql.Driver",
+    "url": "jdbc:postgresql:postgres",
+    "user": "postgres",
+    "password": "postgres"
+  }
+}
