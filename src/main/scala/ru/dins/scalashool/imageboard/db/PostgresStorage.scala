@@ -4,7 +4,9 @@ import cats.Applicative
 import cats.effect.Sync
 import cats.implicits._
 import doobie.implicits._
+import doobie.postgres.implicits._
 import doobie.postgres.sqlstate
+import doobie.util.Read
 import doobie.util.fragments.{set, setOpt, whereAnd, whereAndOpt}
 import doobie.util.invariant.InvariantViolation
 import doobie.util.transactor.Transactor.Aux
@@ -16,8 +18,15 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
 
   def idFilterFr(id: Long) = whereAnd(fr"""id = $id""")
 
-  def getSomething[A](id: Long, collection: CollectionsNameEnum.Value): F[Either[Models.ApiError, A]] =
-    (fr"SELECT * FROM $collection" ++ idFilterFr(id))
+  def getSomething[A: Read](id: Long, collection: CollectionsNameEnum.Value): F[Either[Models.ApiError, A]] = {
+    val collectionsName = collection match {
+      case CollectionsNameEnum.POSTS => fr"posts"
+      case CollectionsNameEnum.TREADS => fr"treads"
+      case CollectionsNameEnum.BOARDS => fr"boards"
+      case CollectionsNameEnum.IMAGES => fr"images"
+      case CollectionsNameEnum.REFERENCES => fr"post_references"
+    }
+    (fr"SELECT * FROM" ++ collectionsName ++ idFilterFr(id))
       .query[A]
       .option
       .transact(xa)
@@ -25,21 +34,22 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
         case None => Applicative[F].pure(Left(ApiError(404, s"There is no $collection with id=$id")))
         case Some(value) => Applicative[F].pure(Right(value))
       }
+  }
 
   def deleteSomething(id: Long, collection: CollectionsNameEnum.Value): F[Unit] =
-    (fr"DELETE FROM $collection" ++ idFilterFr(id)).update.run
+    (fr"DELETE FROM ${collection.toString}" ++ idFilterFr(id)).update.run
       .transact(xa)
       .void
 
-  def getListOfSomething[A](
+  def getListOfSomething[A: Read](
                              collection: CollectionsNameEnum.Value,
                              filter: Option[CollectionsNameEnum.Value],
                              filterId: Option[Long],
                            ): F[List[A]] = {
     val filterFr = whereAndOpt(filter.map { collectionFt =>
-      fr"$collectionFt = $filterId"
+      fr"${collectionFt.toString} = $filterId"
     })
-    (fr"SELECT * FROM $collection" ++ filterFr)
+    (fr"SELECT * FROM ${collection.toString}" ++ filterFr)
       .query[A]
       .to[List]
       .transact(xa)
@@ -57,8 +67,8 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
   override def createPost(
                            treadId: Long,
                            text: String,
-                           references: Option[Map[Long, String]],
-                           imageIds: Option[Long],
+                           references: Option[List[Long]],
+                           imageIds: Option[List[Long]],
                          ): F[Post] =
     sql"""INSERT INTO posts (image_ids, text, created_at, references_responses, tread_id)
           values ($imageIds, $text, current_timestamp, $references, $treadId)""".update
@@ -103,13 +113,13 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
                            imageIds: Option[List[Long]],
                          ): F[Either[ApiError, Post]] = {
     val refResFr = refRespIds.map { rIds =>
-      fr"references_responses=$rIds"
+      fr"references_responses=${rIds.toString}"
     }
     val refFromFr = refFromIds.map { rIds =>
-      fr"references_from=$rIds"
+      fr"references_from=${rIds.toString}"
     }
     val imageIdsFr = imageIds.map { imIds =>
-      fr"image_ids=$imIds"
+      fr"image_ids=${imIds.toString}"
     }
 
     fr"UPDATE posts ${setOpt(refResFr, refFromFr, imageIdsFr)} ${idFilterFr(id)}".update

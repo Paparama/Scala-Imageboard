@@ -10,6 +10,7 @@ object Deps {
     val scalamock      = "4.4.0"
     val logback        = "1.2.3"
     val configReader   = "1.3.1"
+    val tapir     = "0.17.16"
   }
 
   val http4s = Seq(
@@ -51,5 +52,14 @@ object Deps {
   val testContainers = Seq(
     "com.dimafeng" %% "testcontainers-scala-scalatest"  % Versions.testContainers,
     "com.dimafeng" %% "testcontainers-scala-postgresql" % Versions.testContainers,
+  )
+
+  val tapir = Seq(
+    "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-http4s"  % Versions.tapir,
+    "com.softwaremill.sttp.tapir" %% "tapir-core"               % Versions.tapir,
+    "com.softwaremill.sttp.tapir" %% "tapir-http4s-server"      % Versions.tapir,
+    "com.softwaremill.sttp.tapir" %% "tapir-json-circe"         % Versions.tapir,
+    "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs"       % Versions.tapir,
+    "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % Versions.tapir,
   )
 }

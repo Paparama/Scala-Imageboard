@@ -40,5 +40,6 @@ object Models {
   )
 
   case class ApiError(code: Int, message: String)
+  case class PostCreationBody(treadId: Long, text: String, references: Option[List[Long]], imageIds: Option[List[Long]])
 
 }

@@ -1,7 +1,6 @@
 package ru.dins.scalashool.imageboard
 
-import ru.dins.scalashool.imageboard.models.Models.{ApiError, Image, Post, ReferenceResponse, Tread}
-
+import ru.dins.scalashool.imageboard.models.Models._
 
 trait Storage[F[_]] {
   def getPost(id: Long): F[Either[ApiError, Post]]
@@ -12,15 +11,20 @@ trait Storage[F[_]] {
 
   def deletePost(id: Long): F[Unit]
 
-  def createPost(tread: Long, text: String, references: Option[Map[Long, String]], imageIds: Option[Long]): F[Post]
+  def createPost(tread: Long, text: String, references: Option[List[Long]], imageIds: Option[List[Long]]): F[Post]
 
-  def updatePost(id: Long, refIds: Option[List[Long]], imageIds: Option[List[Long]]): F[Either[ApiError, Post]]
+  def updatePost(
+      id: Long,
+      refRespIds: Option[List[Long]],
+      refFromIds: Option[List[Long]],
+      imageIds: Option[List[Long]],
+  ): F[Either[ApiError, Post]]
 
   def getTread(id: Long): F[Either[ApiError, Tread]]
 
   def getTreads(
-                boardId: Option[Long],
-              ): F[List[Tread]]
+      boardId: Option[Long],
+  ): F[List[Tread]]
 
   def deleteTread(id: Long): F[Unit]
 

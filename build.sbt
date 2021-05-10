@@ -16,5 +16,5 @@ ThisBuild / scalacOptions ++= Seq(
   "-deprecation",
 )
 
-libraryDependencies ++= (http4s ++ circe ++ doobie ++ logging ++ configReader ++ (scalaTest ++ scalaMock ++ testContainers)
+libraryDependencies ++= (http4s ++ circe ++ doobie ++ logging ++ tapir ++ configReader ++ (scalaTest ++ scalaMock ++ testContainers)
   .map(_ % Test))

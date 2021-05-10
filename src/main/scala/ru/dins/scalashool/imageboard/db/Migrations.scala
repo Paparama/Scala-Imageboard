@@ -11,22 +11,23 @@ object Migrations {
   private val migration: Update0 =
     sql"""
       create table if not exists posts(
-        id bigint PRIMARY KEY     NOT NULL,
-        image_ids bigint[],
+        id BIGSERIAL PRIMARY KEY NOT NULL,
+        image_ids BIGINT[],
         text text not null,
-        references_responses bigint[],
-        references_from bigint[],
-        tread_id bigint,
+        created_at TIMESTAMP not null,
+        references_responses BIGINT[],
+        references_from BIGINT[],
+        tread_id bigint
       );
 
       create table if not exists boards(
-        id bigint PRIMARY KEY     NOT NULL,
+        id BIGSERIAL PRIMARY KEY     NOT NULL,
         name text not null,
         UNIQUE(name)
       );
 
       create table if not exists treads(
-        id bigint PRIMARY KEY     NOT NULL,
+        id BIGSERIAL PRIMARY KEY     NOT NULL,
         name text not null,
         board_id bigint not null,
         last_msg_id bigint,
@@ -34,13 +35,13 @@ object Migrations {
       );
 
       create table if not exists images(
-        id bigint PRIMARY KEY     NOT NULL,
+        id BIGSERIAL PRIMARY KEY     NOT NULL,
         path text not null,
-        post_id bigint,
+        post_id bigint
       );
 
       create table if not exists post_references(
-        id bigint PRIMARY KEY     NOT NULL,
+        id BIGSERIAL PRIMARY KEY     NOT NULL,
         reference_to bigint not null,
         post_id bigint not null,
         text text
