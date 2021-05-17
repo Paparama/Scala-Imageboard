@@ -2,16 +2,16 @@ package ru.dins.scalashool.imageboard.models
 
 import java.time.LocalDateTime
 
-object Models {
+object DataBaseModels {
 
-  case class ReferenceResponse(
+  case class ReferenceResponseDB(
       id: Long,
       referenceTo: Long,
       text: String,
       postId: Long,
   )
 
-  case class Post(
+  case class PostDB(
       id: Long,
       imageIds: Option[List[Long]],
       text: String,
@@ -21,25 +21,22 @@ object Models {
       treadId: Long,
   )
 
-  case class Image(
+  case class ImageDB(
       id: Long,
       path: String,
       postId: Long,
   )
 
-  case class Tread(
+  case class TopicDB(
       id: Long,
       name: String,
-      lastMsgId: Option[Long],
+      lastCreatedMsgTime: Option[LocalDateTime],
       boardId: Long,
   )
 
-  case class Board(
+  case class BoardDB(
       id: Long,
       name: String,
   )
-
-  case class ApiError(code: Int, message: String)
-  case class PostCreationBody(treadId: Long, text: String, references: Option[List[Long]], imageIds: Option[List[Long]])
 
 }

@@ -1,19 +1,19 @@
 package controllers
 
 import io.circe.generic.auto._
-import ru.dins.scalashool.imageboard.models.HttpModels.{ApiError, PostCreationBody, PostHttp, PostUpdateBody}
+import ru.dins.scalashool.imageboard.models.HttpModels.{ApiError, TopicCreationBody, TopicHttp, TopicUpdateBody}
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
 
-object PostApi {
+object TopicApi {
 
-  val getPost =
+  val getTread =
     endpoint.get
-      .description("get by Id")
-      .in("api" / "posts"/ path[Long])
-      .out(jsonBody[PostHttp])
+      .description("get tread by Id")
+      .in("api" / "tread"/ path[Long])
+      .out(jsonBody[TopicHttp])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
@@ -21,24 +21,25 @@ object PostApi {
         )
       )
 
-  val addPost =
+  val addTread =
     endpoint.post
-      .description("create post")
-      .in("api" / "posts")
-      .in(jsonBody[PostCreationBody])
-      .out(jsonBody[PostHttp])
+      .description("create tread")
+      .in("api" / "tread")
+      .in(jsonBody[TopicCreationBody])
+      .out(jsonBody[TopicHttp])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
+          statusMapping(StatusCode.UnprocessableEntity, jsonBody[ApiError]),
         )
       )
 
-  val updatePost =
+  val updateTread =
     endpoint.patch
-      .description("update post")
-      .in("api" / "posts"/ path[Long])
-      .in(jsonBody[PostUpdateBody])
-      .out(jsonBody[PostHttp])
+      .description("update tread")
+      .in("api" / "tread"/ path[Long])
+      .in(jsonBody[TopicUpdateBody])
+      .out(jsonBody[TopicHttp])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
@@ -46,10 +47,10 @@ object PostApi {
         )
       )
 
-  val deletePost =
+  val deleteTread =
     endpoint.delete
-      .description("delete post")
-      .in("api" / "posts" / path[Long])
+      .description("delete tread")
+      .in("api" / "tread" / path[Long])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),

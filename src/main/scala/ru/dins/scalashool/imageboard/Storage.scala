@@ -1,39 +1,55 @@
 package ru.dins.scalashool.imageboard
 
-import ru.dins.scalashool.imageboard.models.Models._
+import ru.dins.scalashool.imageboard.models.DataBaseModels._
+import ru.dins.scalashool.imageboard.models.HttpModels.ApiError
 
 trait Storage[F[_]] {
-  def getPost(id: Long): F[Either[ApiError, Post]]
+  def getPost(id: Long): F[Either[ApiError, PostDB]]
 
   def getPosts(
       treadId: Option[Long],
-  ): F[List[Post]]
+  ): F[List[PostDB]]
 
   def deletePost(id: Long): F[Unit]
 
-  def createPost(tread: Long, text: String, references: Option[List[Long]], imageIds: Option[List[Long]]): F[Post]
+  def createPost(tread: Long, text: String, references: Option[List[Long]], imageIds: Option[List[Long]]): F[PostDB]
 
   def updatePost(
       id: Long,
       refRespIds: Option[List[Long]],
       refFromIds: Option[List[Long]],
       imageIds: Option[List[Long]],
-  ): F[Either[ApiError, Post]]
+  ): F[Either[ApiError, PostDB]]
 
-  def getTread(id: Long): F[Either[ApiError, Tread]]
+  def getTopic(id: Long): F[Either[ApiError, TopicDB]]
 
-  def getTreads(
+  def getTopics(
       boardId: Option[Long],
-  ): F[List[Tread]]
+  ): F[List[TopicDB]]
 
-  def deleteTread(id: Long): F[Unit]
+  def deleteTopic(id: Long): F[Unit]
 
-  def createTread(board: Long, name: String): F[Either[ApiError, Tread]]
+  def createTopic(board: Long, name: String): F[Either[ApiError, TopicDB]]
 
-  def updateTrad(id: Long, lastPostId: Long): F[Tread]
+  def updateTopic(id: Long, lastPostId: Long): F[TopicDB]
 
-  def createImage(path: String, postId: Long): F[Image]
+  def createImage(path: String, postId: Long): F[ImageDB]
 
-  def createReference(text: String, postId: Long, referenceTo: Long): F[ReferenceResponse]
+  def createReference(text: String, postId: Long, referenceTo: Long): F[ReferenceResponseDB]
 
+  def getImage(id: Long): F[Either[ApiError, ImageDB]]
+
+  def getReference(id: Long):  F[Either[ApiError, ReferenceResponseDB]]
+
+  def getImagesBelongToPost(postId: Long): F[List[ImageDB]]
+
+  def getReferencesBelongToPost(postId: Long):  F[Either[ApiError, List[ReferenceResponseDB]]]
+
+  def deleteImage(id: Long): F[Unit]
+
+  def deleteReference(id: Long): F[Unit]
+
+  def getBoard(id: Long): F[Either[ApiError, BoardDB]]
+
+  def getReferencesAnswerToPost(postId: Long): F[Either[ApiError, List[ReferenceResponseDB]]]
 }

@@ -12,36 +12,36 @@ object Migrations {
     sql"""
       create table if not exists posts(
         id BIGSERIAL PRIMARY KEY NOT NULL,
-        image_ids BIGINT[],
+        image_ids BIGINT[] not null,
         text text not null,
         created_at TIMESTAMP not null,
-        references_responses BIGINT[],
-        references_from BIGINT[],
+        references_responses BIGINT[] not null,
+        references_from BIGINT[] not null,
         tread_id bigint
       );
 
       create table if not exists boards(
-        id BIGSERIAL PRIMARY KEY     NOT NULL,
+        id BIGSERIAL PRIMARY KEY NOT NULL,
         name text not null,
         UNIQUE(name)
       );
 
       create table if not exists treads(
-        id BIGSERIAL PRIMARY KEY     NOT NULL,
+        id BIGSERIAL PRIMARY KEY NOT NULL,
         name text not null,
         board_id bigint not null,
-        last_msg_id bigint,
+        last_msg_created_time TIMESTAMP,
         UNIQUE(name)
       );
 
       create table if not exists images(
-        id BIGSERIAL PRIMARY KEY     NOT NULL,
+        id BIGSERIAL PRIMARY KEY NOT NULL,
         path text not null,
-        post_id bigint
+        post_id bigint not null
       );
 
       create table if not exists post_references(
-        id BIGSERIAL PRIMARY KEY     NOT NULL,
+        id BIGSERIAL PRIMARY KEY NOT NULL,
         reference_to bigint not null,
         post_id bigint not null,
         text text
