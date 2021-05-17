@@ -51,5 +51,9 @@ trait Storage[F[_]] {
 
   def getBoard(id: Long): F[Either[ApiError, BoardDB]]
 
+  def createBoard(name: String): F[Either[ApiError, BoardDB]]
+
+  def deleteBoard(id: Long): F[Unit]
+
   def getReferencesAnswerToPost(postId: Long): F[Either[ApiError, List[ReferenceResponseDB]]]
 }

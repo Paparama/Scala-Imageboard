@@ -221,4 +221,19 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
 
   override def getBoard(id: Long): F[Either[ApiError, BoardDB]] = getSomething(id, CollectionsNameEnum.BOARDS)
 
+  override def createBoard(name: String): F[Either[ApiError, BoardDB]] =
+    sql"""INSERT INTO boards (name)
+          values ($name)""".update
+    .withUniqueGeneratedKeys[BoardDB]("id", "name")
+    .transact(xa)
+    .attemptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
+      ApiError(422, s"Name $name already taken")
+    }
+    .flatMap {
+      case Right(tread) => Applicative[F].pure(Right(tread))
+      case Left(value)  => Applicative[F].pure(Left(value))
+    }
+
+  override def deleteBoard(id: Long): F[Unit] = deleteSomething(id, CollectionsNameEnum.BOARDS)
+
 }

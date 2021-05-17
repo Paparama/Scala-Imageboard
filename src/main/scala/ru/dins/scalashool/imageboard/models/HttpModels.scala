@@ -43,5 +43,7 @@ object HttpModels {
 
   case class TopicCreationBody(boardId: Long, name: String)
   case class TopicUpdateBody(lastMessageId: Long)
+  case class ReferenceCreateBody(postId: Long, text: String, referenceTo: Long)
+  case class BoardCreateBody(name: String)
 
 }

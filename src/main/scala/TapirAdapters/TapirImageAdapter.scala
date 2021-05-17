@@ -1,0 +1,5 @@
+package TapirAdapters
+
+object TapirImageAdapter {
+
+}
