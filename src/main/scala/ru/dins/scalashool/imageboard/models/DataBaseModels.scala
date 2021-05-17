@@ -30,8 +30,8 @@ object DataBaseModels {
   case class TopicDB(
       id: Long,
       name: String,
-      lastCreatedMsgTime: Option[LocalDateTime],
       boardId: Long,
+      lastCreatedMsgTime: Option[LocalDateTime],
   )
 
   case class BoardDB(

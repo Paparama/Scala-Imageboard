@@ -12,7 +12,7 @@ object PostApi {
   val getPost =
     endpoint.get
       .description("get by Id")
-      .in("api" / "posts"/ path[Long])
+      .in("api" / "post"/ path[Long])
       .out(jsonBody[PostHttp])
       .errorOut(
         oneOf[ApiError](
@@ -24,7 +24,7 @@ object PostApi {
   val addPost =
     endpoint.post
       .description("create post")
-      .in("api" / "posts")
+      .in("api" / "post")
       .in(jsonBody[PostCreationBody])
       .out(jsonBody[PostHttp])
       .errorOut(
@@ -36,7 +36,7 @@ object PostApi {
   val updatePost =
     endpoint.patch
       .description("update post")
-      .in("api" / "posts"/ path[Long])
+      .in("api" / "post"/ path[Long])
       .in(jsonBody[PostUpdateBody])
       .out(jsonBody[PostHttp])
       .errorOut(
@@ -49,7 +49,7 @@ object PostApi {
   val deletePost =
     endpoint.delete
       .description("delete post")
-      .in("api" / "posts" / path[Long])
+      .in("api" / "post" / path[Long])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),

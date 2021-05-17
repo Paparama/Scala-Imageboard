@@ -26,8 +26,8 @@ object ModelConverter {
         (for {
           imagesDb                <- EitherT.right(storage.getImagesBelongToPost(id))
           referencesResponsesFrom <- EitherT(storage.getReferencesBelongToPost(id))
-          referencesResponsesTo   <- EitherT(storage.getReferencesAnswerToPost(id))
           topic                   <- EitherT(storage.getTopic(topicId))
+          referencesResponsesTo   <- EitherT(storage.getReferencesAnswerToPost(id))
         } yield (imagesDb, referencesResponsesFrom, referencesResponsesTo, topic)).map {
           case (
                 imagesDb: List[ImageDB],
@@ -47,7 +47,7 @@ object ModelConverter {
     }
 
     override def convertTopic(topic: TopicDB): F[Either[ApiError, TopicHttp]] = topic match {
-      case TopicDB(id, name, _, boardId) =>
+      case TopicDB(id, name, boardId, _) =>
         (for {
           postsDb   <- EitherT.right(storage.getPosts(Some(id)))
           postsHttp <- EitherT(postsDb.map(convertPost).sequence.flatMap(it => Applicative[F].pure(it.sequence)))

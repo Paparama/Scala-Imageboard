@@ -20,7 +20,7 @@ object TapirReferenceAdapter {
       case Right(refDB) => Applicative[F].pure(Right(modelConverter.convertReference(refDB)))
     }
 
-    override def addRef(body: ReferenceCreateBody): F[Either[ApiError, ReferenceResponseHttp]] = storage.createReference(body.text, body.postId, body.referenceTo).map(_.asRight)
+    override def addRef(body: ReferenceCreateBody): F[Either[ApiError, ReferenceResponseHttp]] = storage.createReference(body.text, body.postId, body.referenceTo).map(modelConverter.convertReference(_).asRight)
 
     override def deleteRef(id: Long): F[Either[ApiError, Unit]] = storage.deleteReference(id).map(_.asRight)
   }

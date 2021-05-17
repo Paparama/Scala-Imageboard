@@ -9,10 +9,10 @@ import sttp.tapir.json.circe._
 
 object TopicApi {
 
-  val getTread =
+  val getTopic =
     endpoint.get
-      .description("get tread by Id")
-      .in("api" / "tread"/ path[Long])
+      .description("get topic by Id")
+      .in("api" / "topic"/ path[Long])
       .out(jsonBody[TopicHttp])
       .errorOut(
         oneOf[ApiError](
@@ -21,10 +21,10 @@ object TopicApi {
         )
       )
 
-  val addTread =
+  val addTopic =
     endpoint.post
-      .description("create tread")
-      .in("api" / "tread")
+      .description("create topic")
+      .in("api" / "topic")
       .in(jsonBody[TopicCreationBody])
       .out(jsonBody[TopicHttp])
       .errorOut(
@@ -34,10 +34,10 @@ object TopicApi {
         )
       )
 
-  val updateTread =
+  val updateTopic =
     endpoint.patch
-      .description("update tread")
-      .in("api" / "tread"/ path[Long])
+      .description("update topic")
+      .in("api" / "topic"/ path[Long])
       .in(jsonBody[TopicUpdateBody])
       .out(jsonBody[TopicHttp])
       .errorOut(
@@ -47,10 +47,10 @@ object TopicApi {
         )
       )
 
-  val deleteTread =
+  val deleteTopic =
     endpoint.delete
-      .description("delete tread")
-      .in("api" / "tread" / path[Long])
+      .description("delete topic")
+      .in("api" / "topic" / path[Long])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),

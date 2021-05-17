@@ -47,10 +47,10 @@ object Main extends IOApp {
     val updatePostRoute = Http4sServerInterpreter.toRoutes(PostApi.updatePost)(tapirPostService.updatePost)
     val deletePostRoute = Http4sServerInterpreter.toRoutes(PostApi.deletePost)(tapirPostService.deletePost)
 
-    val getTreadRoute    = Http4sServerInterpreter.toRoutes(TopicApi.getTread)(tapirTreadService.getTread)
-    val addTreadRoute    = Http4sServerInterpreter.toRoutes(TopicApi.addTread)(tapirTreadService.addTread)
-    val updateTreadRoute = Http4sServerInterpreter.toRoutes(TopicApi.updateTread)(tapirTreadService.updateTread)
-    val deleteTreadRoute = Http4sServerInterpreter.toRoutes(TopicApi.deleteTread)(tapirTreadService.deleteTread)
+    val getTreadRoute    = Http4sServerInterpreter.toRoutes(TopicApi.getTopic)(tapirTreadService.getTread)
+    val addTreadRoute    = Http4sServerInterpreter.toRoutes(TopicApi.addTopic)(tapirTreadService.addTread)
+    val updateTreadRoute = Http4sServerInterpreter.toRoutes(TopicApi.updateTopic)(tapirTreadService.updateTread)
+    val deleteTreadRoute = Http4sServerInterpreter.toRoutes(TopicApi.deleteTopic)(tapirTreadService.deleteTread)
 
     val getBoardRoute    = Http4sServerInterpreter.toRoutes(BoardApi.getBoard)(tapirBoardAdapter.getBoard)
     val addBoardRoute    = Http4sServerInterpreter.toRoutes(BoardApi.addBoard)(tapirBoardAdapter.addBoard)
@@ -60,7 +60,7 @@ object Main extends IOApp {
     val addRefRoute    = Http4sServerInterpreter.toRoutes(ReferenceApi.addRef)(tapirRefAdapter.addRef)
     val deleteRefRoute = Http4sServerInterpreter.toRoutes(ReferenceApi.deleteRef)(tapirRefAdapter.deleteRef)
 
-    val treadRoutsList = List(TopicApi.getTread, TopicApi.addTread, TopicApi.updateTread, TopicApi.deleteTread)
+    val treadRoutsList = List(TopicApi.getTopic, TopicApi.addTopic, TopicApi.updateTopic, TopicApi.deleteTopic)
     val postRoutsList  = List(PostApi.getPost, PostApi.addPost, PostApi.updatePost, PostApi.deletePost)
     val boardRoutsList = List(BoardApi.getBoard, BoardApi.addBoard, BoardApi.deleteBoard)
     val refRoutsList   = List(ReferenceApi.getReference, ReferenceApi.addRef, ReferenceApi.deleteRef)

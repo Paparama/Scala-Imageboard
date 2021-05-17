@@ -106,7 +106,7 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
       .transact(xa)
   }
 
-  override def getTopic(id: Long): F[Either[ApiError, DataBaseModels.TopicDB]] =
+  override def getTopic(id: Long): F[Either[ApiError, TopicDB]] =
     getSomething(id, CollectionsNameEnum.TOPICS)
 
   override def getTopics(boardId: Option[Long]): F[List[DataBaseModels.TopicDB]] = boardId match {
@@ -119,7 +119,7 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
   override def createTopic(boardId: Long, name: String): F[Either[ApiError, TopicDB]] =
     sql"""INSERT INTO treads (name, board_id)
           values ($name, $boardId)""".update
-      .withUniqueGeneratedKeys[TopicDB]("id", "name", "last_msg_id", "board_id")
+      .withUniqueGeneratedKeys[TopicDB]("id", "name", "last_msg_created_time", "board_id")
       .transact(xa)
       .attemptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
         ApiError(422, s"Name $name already taken")
