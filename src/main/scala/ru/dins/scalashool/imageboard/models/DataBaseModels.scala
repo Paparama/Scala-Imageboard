@@ -13,11 +13,11 @@ object DataBaseModels {
 
   case class PostDB(
       id: Long,
-      imageIds: Option[List[Long]],
+      imageIds: List[Long],
       text: String,
       createdAt: LocalDateTime,
-      referencesResponses: Option[List[Long]],
-      referencesFrom: Option[List[Long]],
+      referencesResponses: List[Long],
+      referencesFrom: List[Long],
       treadId: Long,
   )
 

@@ -1,4 +1,4 @@
-package controllers
+package ru.dins.scalashool.imageboard.controllers
 
 import io.circe.generic.auto._
 import ru.dins.scalashool.imageboard.models.HttpModels.{ApiError, TopicCreationBody, TopicHttp, TopicUpdateBody}

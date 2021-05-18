@@ -1,4 +1,4 @@
-package TapirAdapters
+package ru.dins.scalashool.imageboard.TapirAdapters
 
 import cats.Applicative
 import cats.effect.Sync

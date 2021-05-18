@@ -12,7 +12,7 @@ trait Storage[F[_]] {
 
   def deletePost(id: Long): F[Unit]
 
-  def createPost(tread: Long, text: String, references: Option[List[Long]], imageIds: Option[List[Long]]): F[PostDB]
+  def createPost(tread: Long, text: String, references: List[Long], imageIds: List[Long]): F[PostDB]
 
   def updatePost(
       id: Long,

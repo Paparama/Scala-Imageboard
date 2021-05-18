@@ -1,34 +1,28 @@
 package ru.dins.scalashool.imageboard
 
-import TapirAdapters.{TapirBoardAdapter, TapirImageAdapter, TapirPostAdapter, TapirReferenceAdapter, TapirTopicAdapter}
-import cats.Applicative
+import ru.dins.scalashool.imageboard.TapirAdapters.{TapirBoardAdapter, TapirImageAdapter, TapirPostAdapter, TapirReferenceAdapter, TapirTopicAdapter}
 import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
 import cats.implicits.catsSyntaxFlatMapOps
 import cats.syntax.semigroupk._
-import com.typesafe.config.{Config, ConfigFactory}
-import controllers.{BoardApi, ImageApi, PostApi, ReferenceApi, TopicApi}
+import com.typesafe.config.ConfigFactory
+import ru.dins.scalashool.imageboard.controllers.{BoardApi, ImageApi, PostApi, ReferenceApi, TopicApi}
 import doobie.Transactor
-import jdk.javadoc.internal.doclets.toolkit.util.DocFinder.Output
 import org.http4s.implicits.http4sKleisliResponseSyntaxOptionT
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.{Router, Server}
 import ru.dins.scalashool.imageboard.db.{Migrations, PostgresStorage}
-import ru.dins.scalashool.imageboard.models.HttpModels.ImageHttp
 import ru.dins.scalashool.imageboard.models.ModelConverter
 import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
 import sttp.tapir.openapi.circe.yaml._
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.http4s.SwaggerHttp4s
 
-import java.io.File
 import scala.concurrent.ExecutionContext
-import sys.process._
 
 
 object Main extends IOApp {
-  override def run(args: List[String]): IO[ExitCode] = {
+  override def run(args: List[String]): IO[ExitCode] =  IO.delay(ConfigFactory.load()).flatMap{ config =>
 
-    val config: Config = ConfigFactory.load()
     val DB_DRIVER      = config.getString("db.driver")
     val DB_URL         = config.getString("db.url")
     val DB_USER        = config.getString("db.user")
@@ -70,7 +64,7 @@ object Main extends IOApp {
     val deleteRefRoute = Http4sServerInterpreter.toRoutes(ReferenceApi.deleteRef)(tapirRefAdapter.deleteRef)
 
     val getImageRoute    = Http4sServerInterpreter.toRoutes(ImageApi.getImage)(tapirImageAdapter.getImage)
-    val addImageRoute    = Http4sServerInterpreter.toRoutes(ImageApi.addImage) (tapirImageAdapter.addImage)
+    val addImageRoute    = Http4sServerInterpreter.toRoutes(ImageApi.addImage) (tapirImageAdapter.addImage(_)(blocker))
     val deleteImageRoute = Http4sServerInterpreter.toRoutes(ImageApi.deleteImage)(tapirImageAdapter.deleteImage)
 
     val treadRoutsList = List(TopicApi.getTopic, TopicApi.addTopic, TopicApi.updateTopic, TopicApi.deleteTopic)
@@ -85,7 +79,7 @@ object Main extends IOApp {
     val httpApp = Router(
       "/" -> (getPostRoute <+> addPostRoute <+> updatePostRoute <+> deletePostRoute <+> getTreadRoute <+>
         addTreadRoute <+> updateTreadRoute <+> deleteTreadRoute <+> getBoardRoute <+> addBoardRoute <+>
-        deleteBoardRoute <+> getRefRoute <+> addRefRoute <+> deleteRefRoute),
+        deleteBoardRoute <+> getRefRoute <+> addRefRoute <+> deleteRefRoute <+> getImageRoute <+> addImageRoute <+> deleteImageRoute),
       "/swagger" -> swagger.routes, // http://localhost:8080/swagger/docs
     ).orNotFound
 

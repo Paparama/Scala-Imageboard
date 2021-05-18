@@ -1,4 +1,4 @@
-package controllers
+package ru.dins.scalashool.imageboard.controllers
 
 import ru.dins.scalashool.imageboard.models.HttpModels.{ApiError, BoardCreateBody, BoardHttp}
 import sttp.tapir.json.circe.jsonBody

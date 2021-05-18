@@ -1,6 +1,6 @@
-package controllers
+package ru.dins.scalashool.imageboard.controllers
 
-import ru.dins.scalashool.imageboard.models.HttpModels.{ApiError, ImageHttp, ImageUpload}
+import ru.dins.scalashool.imageboard.models.HttpModels.{ApiError, SuccessCreation, ImageHttp, ImageUpload}
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.{endpoint, oneOf, path, statusMapping}
 import sttp.model.StatusCode
@@ -38,7 +38,7 @@ object ImageApi {
       .description("create image")
       .in("api" / "image")
       .in(multipartBody[ImageUpload])
-      .out(jsonBody[ImageHttp])
+      .out(jsonBody[SuccessCreation])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),

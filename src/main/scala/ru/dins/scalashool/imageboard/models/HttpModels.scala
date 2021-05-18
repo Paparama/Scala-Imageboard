@@ -1,7 +1,6 @@
 package ru.dins.scalashool.imageboard.models
 
 import sttp.model.Part
-import sttp.tapir.TapirFile
 
 import java.io.File
 import java.time.LocalDateTime
@@ -21,6 +20,10 @@ object HttpModels {
       path: String,
   )
 
+  case class SuccessCreation(
+      result: String,
+  )
+
   case class TopicHttp(
       name: String,
       posts: List[PostHttp],
@@ -38,7 +41,8 @@ object HttpModels {
 
   case class ApiError(code: Int, message: String)
 
-  case class PostCreationBody(treadId: Long, text: String, references: Option[List[Long]], imageIds: Option[List[Long]])
+  case class PostCreationBody(treadId: Long, text: String, references: List[Long], imageIds: List[Long])
+
   case class PostUpdateBody(
       refRespIds: Option[List[Long]],
       refFromIds: Option[List[Long]],

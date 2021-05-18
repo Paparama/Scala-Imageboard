@@ -78,22 +78,13 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
   override def createPost(
       treadId: Long,
       text: String,
-      references: Option[List[Long]],
-      imageIds: Option[List[Long]],
+      references: List[Long],
+      imageIds: List[Long],
   ): F[PostDB] = {
-    val finalImageIds = imageIds match {
-      case None => List[Long]()
-      case Some(ids) => ids
-    }
-
-    val finalRefIds = references match {
-      case None => List[Long]()
-      case Some(ids) => ids
-    }
 
     val refFrom = List[Long]()
     sql"""INSERT INTO posts (image_ids, text, created_at, references_responses, tread_id, references_from)
-          values ($finalImageIds, $text, current_timestamp, $finalRefIds, $treadId, $refFrom)""".update
+          values ($imageIds, $text, current_timestamp, $references, $treadId, $refFrom)""".update
       .withUniqueGeneratedKeys[PostDB](
         "id",
         "image_ids",
@@ -135,17 +126,23 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
       refFromIds: Option[List[Long]],
       imageIds: Option[List[Long]],
   ): F[Either[ApiError, PostDB]] = {
-    val refResFr = refRespIds.map { rIds =>
-      fr"references_responses=${rIds.toString}"
-    }
-    val refFromFr = refFromIds.map { rIds =>
-      fr"references_from=${rIds.toString}"
-    }
-    val imageIdsFr = imageIds.map { imIds =>
-      fr"image_ids=${imIds.toString}"
-    }
+    val update =
+      fr"UPDATE posts"
 
-    fr"UPDATE posts ${setOpt(refResFr, refFromFr, imageIdsFr)} ${idFilterFr(id)}".update
+    val set = setOpt(
+      refRespIds.map { rIds =>
+        fr"references_responses = references_responses || $rIds"
+      },
+    refFromIds.map { rIds =>
+      fr"references_from = references_from || $rIds"
+    },
+      imageIds.map { imIds =>
+        fr"text = image_ids || $imIds"
+      }
+    )
+
+    //UPDATE posts set image_ids = image_ids || '{1}' WHERE id = 22
+    (update ++ set ++ idFilterFr(id)).update
       .withUniqueGeneratedKeys[PostDB](
         "id",
         "image_ids",
@@ -163,7 +160,7 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
       }
       .map {
         case Left(_: InvariantViolation) => Left(ApiError(404, s"Post with id=$id not found"))
-        case Left(_)                     => Left(ApiError(500, "Unexpected error"))
+        case Left(er)                     => Left(ApiError(500, er.toString))
         case Right(post)                 => Right(post)
       }
   }
