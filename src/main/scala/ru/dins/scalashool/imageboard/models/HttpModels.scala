@@ -1,5 +1,9 @@
 package ru.dins.scalashool.imageboard.models
 
+import sttp.model.Part
+import sttp.tapir.TapirFile
+
+import java.io.File
 import java.time.LocalDateTime
 
 object HttpModels {
@@ -45,5 +49,7 @@ object HttpModels {
   case class TopicUpdateBody(lastMessageId: Long)
   case class ReferenceCreateBody(postId: Long, text: String, referenceTo: Long)
   case class BoardCreateBody(name: String)
+
+  case class ImageUpload(postId: Long, data: Part[File])
 
 }

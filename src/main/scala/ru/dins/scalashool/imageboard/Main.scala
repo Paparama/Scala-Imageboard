@@ -1,23 +1,29 @@
 package ru.dins.scalashool.imageboard
 
-import TapirAdapters.{TapirBoardAdapter, TapirPostAdapter, TapirReferenceAdapter, TapirTopicAdapter}
-import cats.effect.{ExitCode, IO, IOApp, Resource}
+import TapirAdapters.{TapirBoardAdapter, TapirImageAdapter, TapirPostAdapter, TapirReferenceAdapter, TapirTopicAdapter}
+import cats.Applicative
+import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
 import cats.implicits.catsSyntaxFlatMapOps
 import cats.syntax.semigroupk._
 import com.typesafe.config.{Config, ConfigFactory}
-import controllers.{BoardApi, PostApi, ReferenceApi, TopicApi}
+import controllers.{BoardApi, ImageApi, PostApi, ReferenceApi, TopicApi}
 import doobie.Transactor
+import jdk.javadoc.internal.doclets.toolkit.util.DocFinder.Output
 import org.http4s.implicits.http4sKleisliResponseSyntaxOptionT
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.{Router, Server}
 import ru.dins.scalashool.imageboard.db.{Migrations, PostgresStorage}
+import ru.dins.scalashool.imageboard.models.HttpModels.ImageHttp
 import ru.dins.scalashool.imageboard.models.ModelConverter
 import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
 import sttp.tapir.openapi.circe.yaml._
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.http4s.SwaggerHttp4s
 
+import java.io.File
 import scala.concurrent.ExecutionContext
+import sys.process._
+
 
 object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
@@ -35,12 +41,15 @@ object Main extends IOApp {
       DB_PASS,
     )
 
+    val blocker = Blocker.liftExecutionContext(executionContext)
+
     val storage           = PostgresStorage(xa)
     val modelConverter    = ModelConverter(storage)
     val tapirPostService  = TapirPostAdapter(storage, modelConverter)
     val tapirTreadService = TapirTopicAdapter(storage, modelConverter)
     val tapirRefAdapter   = TapirReferenceAdapter(storage, modelConverter)
     val tapirBoardAdapter = TapirBoardAdapter(storage, modelConverter)
+    val tapirImageAdapter = TapirImageAdapter(storage, modelConverter)
 
     val getPostRoute    = Http4sServerInterpreter.toRoutes(PostApi.getPost)(tapirPostService.getPost)
     val addPostRoute    = Http4sServerInterpreter.toRoutes(PostApi.addPost)(tapirPostService.addPost)
@@ -59,6 +68,10 @@ object Main extends IOApp {
     val getRefRoute    = Http4sServerInterpreter.toRoutes(ReferenceApi.getReference)(tapirRefAdapter.getRef)
     val addRefRoute    = Http4sServerInterpreter.toRoutes(ReferenceApi.addRef)(tapirRefAdapter.addRef)
     val deleteRefRoute = Http4sServerInterpreter.toRoutes(ReferenceApi.deleteRef)(tapirRefAdapter.deleteRef)
+
+    val getImageRoute    = Http4sServerInterpreter.toRoutes(ImageApi.getImage)(tapirImageAdapter.getImage)
+    val addImageRoute    = Http4sServerInterpreter.toRoutes(ImageApi.addImage) (tapirImageAdapter.addImage)
+    val deleteImageRoute = Http4sServerInterpreter.toRoutes(ImageApi.deleteImage)(tapirImageAdapter.deleteImage)
 
     val treadRoutsList = List(TopicApi.getTopic, TopicApi.addTopic, TopicApi.updateTopic, TopicApi.deleteTopic)
     val postRoutsList  = List(PostApi.getPost, PostApi.addPost, PostApi.updatePost, PostApi.deletePost)
