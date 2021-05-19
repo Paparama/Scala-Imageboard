@@ -1,7 +1,7 @@
 package ru.dins.scalashool.imageboard.controllers
 
 import io.circe.generic.auto._
-import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, PostCreationBody, PostResponse, PostUpdateBody}
+import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, PostCreationBody, PostResponse, PostUpdateBody, SuccessCreation, SuccessUpdate}
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
@@ -26,7 +26,7 @@ object PostApi {
       .description("create post")
       .in("api" / "post")
       .in(jsonBody[PostCreationBody])
-      .out(jsonBody[PostResponse])
+      .out(jsonBody[SuccessCreation])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
@@ -38,7 +38,7 @@ object PostApi {
       .description("update post")
       .in("api" / "post"/ path[Long])
       .in(jsonBody[PostUpdateBody])
-      .out(jsonBody[PostResponse])
+      .out(jsonBody[SuccessUpdate])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),

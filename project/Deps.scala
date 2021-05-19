@@ -11,6 +11,7 @@ object Deps {
     val logback        = "1.2.3"
     val configReader   = "0.15.0"
     val tapir     = "0.17.16"
+    val flyway     = "7.9.1"
   }
 
   val http4s = Seq(
@@ -61,5 +62,9 @@ object Deps {
     "com.softwaremill.sttp.tapir" %% "tapir-json-circe"         % Versions.tapir,
     "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs"       % Versions.tapir,
     "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % Versions.tapir,
+  )
+
+  val flyway = Seq(
+    "org.flywaydb" % "flyway-core" % Versions.flyway,
   )
 }

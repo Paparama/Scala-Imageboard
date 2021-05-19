@@ -24,6 +24,10 @@ object ResponseModels {
       result: String,
   )
 
+  case class SuccessUpdate(
+      result: String,
+  )
+
   case class TopicResponse(
       name: String,
       posts: List[PostResponse],

@@ -4,14 +4,14 @@ import cats.Applicative
 import cats.effect.Sync
 import cats.implicits._
 import ru.dins.scalashool.imageboard.db.PostgresStorage
-import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, TopicResponse, TopicCreationBody, TopicUpdateBody}
+import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, SuccessCreation, TopicCreationBody, TopicResponse, TopicUpdateBody}
 import ru.dins.scalashool.imageboard.models.ModelConverter
 
 trait TapirTopicAdapter[F[_]] {
 
   def getTread(id: Long): F[Either[ApiError, TopicResponse]]
 
-  def addTread(body: TopicCreationBody): F[Either[ApiError, TopicResponse]]
+  def addTread(body: TopicCreationBody): F[Either[ApiError, SuccessCreation]]
 
   def updateTread(idAndBody: (Long, TopicUpdateBody)): F[Either[ApiError, TopicResponse]]
 
@@ -27,10 +27,10 @@ object TapirTopicAdapter {
         case Right(topicDB) => modelConverter.convertTopic(topicDB)
       }
 
-    override def addTread(body: TopicCreationBody): F[Either[ApiError, TopicResponse]] = body match {
+    override def addTread(body: TopicCreationBody): F[Either[ApiError, SuccessCreation]] = body match {
       case TopicCreationBody(boardId, name) => storage.createTopic(boardId,name).flatMap{
         case Left(error) => Applicative[F].pure(Left(error))
-        case Right(topicDB) => modelConverter.convertTopic(topicDB)
+        case Right(topicDB) => Applicative[F].pure(Right(SuccessCreation(s"Topic with name ${topicDB.name} was created")))
       }
     }
 

@@ -1,7 +1,7 @@
 package ru.dins.scalashool.imageboard.controllers
 
 import io.circe.generic.auto._
-import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, TopicCreationBody, TopicResponse, TopicUpdateBody}
+import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, SuccessCreation, TopicCreationBody, TopicResponse, TopicUpdateBody}
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
@@ -26,7 +26,7 @@ object TopicApi {
       .description("create topic")
       .in("api" / "topic")
       .in(jsonBody[TopicCreationBody])
-      .out(jsonBody[TopicResponse])
+      .out(jsonBody[SuccessCreation])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
