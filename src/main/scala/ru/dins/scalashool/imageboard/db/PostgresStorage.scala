@@ -14,7 +14,7 @@ import doobie.util.transactor.Transactor.Aux
 import ru.dins.scalashool.imageboard.Storage
 import ru.dins.scalashool.imageboard.models.DataBaseModels
 import ru.dins.scalashool.imageboard.models.DataBaseModels._
-import ru.dins.scalashool.imageboard.models.HttpModels.ApiError
+import ru.dins.scalashool.imageboard.models.ResponseModels.ApiError
 
 case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
 
@@ -141,7 +141,6 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
       }
     )
 
-    //UPDATE posts set image_ids = image_ids || '{1}' WHERE id = 22
     (update ++ set ++ idFilterFr(id)).update
       .withUniqueGeneratedKeys[PostDB](
         "id",
@@ -160,7 +159,7 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
       }
       .map {
         case Left(_: InvariantViolation) => Left(ApiError(404, s"Post with id=$id not found"))
-        case Left(er)                     => Left(ApiError(500, er.toString))
+        case Left(_)                     => Left(ApiError(500, "server error"))
         case Right(post)                 => Right(post)
       }
   }

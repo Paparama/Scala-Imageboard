@@ -1,7 +1,7 @@
 package ru.dins.scalashool.imageboard.controllers
 
 import io.circe.generic.auto._
-import ru.dins.scalashool.imageboard.models.HttpModels.{ApiError, PostCreationBody, PostHttp, PostUpdateBody}
+import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, PostCreationBody, PostResponse, PostUpdateBody}
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
@@ -13,7 +13,7 @@ object PostApi {
     endpoint.get
       .description("get by Id")
       .in("api" / "post"/ path[Long])
-      .out(jsonBody[PostHttp])
+      .out(jsonBody[PostResponse])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
@@ -26,7 +26,7 @@ object PostApi {
       .description("create post")
       .in("api" / "post")
       .in(jsonBody[PostCreationBody])
-      .out(jsonBody[PostHttp])
+      .out(jsonBody[PostResponse])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
@@ -38,7 +38,7 @@ object PostApi {
       .description("update post")
       .in("api" / "post"/ path[Long])
       .in(jsonBody[PostUpdateBody])
-      .out(jsonBody[PostHttp])
+      .out(jsonBody[PostResponse])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),

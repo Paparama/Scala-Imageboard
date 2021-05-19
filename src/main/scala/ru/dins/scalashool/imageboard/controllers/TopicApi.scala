@@ -1,7 +1,7 @@
 package ru.dins.scalashool.imageboard.controllers
 
 import io.circe.generic.auto._
-import ru.dins.scalashool.imageboard.models.HttpModels.{ApiError, TopicCreationBody, TopicHttp, TopicUpdateBody}
+import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, TopicCreationBody, TopicResponse, TopicUpdateBody}
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
@@ -13,7 +13,7 @@ object TopicApi {
     endpoint.get
       .description("get topic by Id")
       .in("api" / "topic"/ path[Long])
-      .out(jsonBody[TopicHttp])
+      .out(jsonBody[TopicResponse])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
@@ -26,7 +26,7 @@ object TopicApi {
       .description("create topic")
       .in("api" / "topic")
       .in(jsonBody[TopicCreationBody])
-      .out(jsonBody[TopicHttp])
+      .out(jsonBody[TopicResponse])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
@@ -39,7 +39,7 @@ object TopicApi {
       .description("update topic")
       .in("api" / "topic"/ path[Long])
       .in(jsonBody[TopicUpdateBody])
-      .out(jsonBody[TopicHttp])
+      .out(jsonBody[TopicResponse])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),

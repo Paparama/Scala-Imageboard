@@ -1,6 +1,6 @@
 package ru.dins.scalashool.imageboard.controllers
 
-import ru.dins.scalashool.imageboard.models.HttpModels.{ApiError, BoardCreateBody, BoardHttp}
+import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, BoardCreateBody, BoardResponse}
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.{endpoint, oneOf, path, statusMapping}
 import sttp.model.StatusCode
@@ -14,7 +14,7 @@ object BoardApi {
     endpoint.get
       .description("get by Id")
       .in("api" / "board"/ path[Long])
-      .out(jsonBody[BoardHttp])
+      .out(jsonBody[BoardResponse])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
@@ -27,7 +27,7 @@ object BoardApi {
       .description("create board")
       .in("api" / "board")
       .in(jsonBody[BoardCreateBody])
-      .out(jsonBody[BoardHttp])
+      .out(jsonBody[BoardResponse])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),

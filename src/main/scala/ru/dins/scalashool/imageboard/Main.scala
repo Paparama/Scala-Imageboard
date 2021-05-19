@@ -4,7 +4,7 @@ import ru.dins.scalashool.imageboard.TapirAdapters.{TapirBoardAdapter, TapirImag
 import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
 import cats.implicits.catsSyntaxFlatMapOps
 import cats.syntax.semigroupk._
-import com.typesafe.config.ConfigFactory
+import ru.dins.scalashool.imageboard.config.DbConfigLoader
 import ru.dins.scalashool.imageboard.controllers.{BoardApi, ImageApi, PostApi, ReferenceApi, TopicApi}
 import doobie.Transactor
 import org.http4s.implicits.http4sKleisliResponseSyntaxOptionT
@@ -21,12 +21,12 @@ import scala.concurrent.ExecutionContext
 
 
 object Main extends IOApp {
-  override def run(args: List[String]): IO[ExitCode] =  IO.delay(ConfigFactory.load()).flatMap{ config =>
+  override def run(args: List[String]): IO[ExitCode] =  DbConfigLoader.load[IO].flatMap{ config =>
 
-    val DB_DRIVER      = config.getString("db.driver")
-    val DB_URL         = config.getString("db.url")
-    val DB_USER        = config.getString("db.user")
-    val DB_PASS        = config.getString("db.password")
+    val DB_DRIVER      = config.driver
+    val DB_URL         = config.url
+    val DB_USER        = config.user
+    val DB_PASS        = config.password
 
     val xa = Transactor.fromDriverManager[IO](
       DB_DRIVER,

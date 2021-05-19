@@ -4,16 +4,16 @@ import cats.Applicative
 import cats.effect.Sync
 import cats.implicits._
 import ru.dins.scalashool.imageboard.db.PostgresStorage
-import ru.dins.scalashool.imageboard.models.HttpModels.{ApiError, TopicHttp, TopicCreationBody, TopicUpdateBody}
+import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, TopicResponse, TopicCreationBody, TopicUpdateBody}
 import ru.dins.scalashool.imageboard.models.ModelConverter
 
 trait TapirTopicAdapter[F[_]] {
 
-  def getTread(id: Long): F[Either[ApiError, TopicHttp]]
+  def getTread(id: Long): F[Either[ApiError, TopicResponse]]
 
-  def addTread(body: TopicCreationBody): F[Either[ApiError, TopicHttp]]
+  def addTread(body: TopicCreationBody): F[Either[ApiError, TopicResponse]]
 
-  def updateTread(idAndBody: (Long, TopicUpdateBody)): F[Either[ApiError, TopicHttp]]
+  def updateTread(idAndBody: (Long, TopicUpdateBody)): F[Either[ApiError, TopicResponse]]
 
   def deleteTread(id: Long): F[Either[ApiError, Unit]]
 
@@ -21,20 +21,20 @@ trait TapirTopicAdapter[F[_]] {
 
 object TapirTopicAdapter {
   def apply[F[_] : Sync](storage: PostgresStorage[F], modelConverter: ModelConverter[F]) = new TapirTopicAdapter[F] {
-    override def getTread(id: Long): F[Either[ApiError, TopicHttp]] =
+    override def getTread(id: Long): F[Either[ApiError, TopicResponse]] =
       storage.getTopic(id).flatMap{
         case Left(error) => Applicative[F].pure(Left(error))
         case Right(topicDB) => modelConverter.convertTopic(topicDB)
       }
 
-    override def addTread(body: TopicCreationBody): F[Either[ApiError, TopicHttp]] = body match {
+    override def addTread(body: TopicCreationBody): F[Either[ApiError, TopicResponse]] = body match {
       case TopicCreationBody(boardId, name) => storage.createTopic(boardId,name).flatMap{
         case Left(error) => Applicative[F].pure(Left(error))
         case Right(topicDB) => modelConverter.convertTopic(topicDB)
       }
     }
 
-    override def updateTread(idAndBody: (Long, TopicUpdateBody)): F[Either[ApiError, TopicHttp]] = idAndBody._2 match {
+    override def updateTread(idAndBody: (Long, TopicUpdateBody)): F[Either[ApiError, TopicResponse]] = idAndBody._2 match {
       case TopicUpdateBody(lastMessageId) => storage.updateTopic(idAndBody._1, lastMessageId).flatMap(modelConverter.convertTopic)
     }
 

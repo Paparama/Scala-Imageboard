@@ -1,6 +1,6 @@
 package ru.dins.scalashool.imageboard.controllers
 
-import ru.dins.scalashool.imageboard.models.HttpModels.{ApiError, SuccessCreation, ImageHttp, ImageUpload}
+import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, SuccessCreation, ImageResponse, ImageUpload}
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.{endpoint, oneOf, path, statusMapping}
 import sttp.model.StatusCode
@@ -13,7 +13,7 @@ object ImageApi {
     endpoint.get
       .description("get by Id")
       .in("api" / "image"/ path[Long])
-      .out(jsonBody[ImageHttp])
+      .out(jsonBody[ImageResponse])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
@@ -25,7 +25,7 @@ object ImageApi {
     endpoint.get
       .description("get as file")
       .in("api" / "image"/ path[String])
-      .out(jsonBody[ImageHttp])
+      .out(jsonBody[ImageResponse])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),

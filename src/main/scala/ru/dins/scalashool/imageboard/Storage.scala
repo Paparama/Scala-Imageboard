@@ -1,7 +1,7 @@
 package ru.dins.scalashool.imageboard
 
 import ru.dins.scalashool.imageboard.models.DataBaseModels._
-import ru.dins.scalashool.imageboard.models.HttpModels.ApiError
+import ru.dins.scalashool.imageboard.models.ResponseModels.ApiError
 
 trait Storage[F[_]] {
   def getPost(id: Long): F[Either[ApiError, PostDB]]

@@ -1,6 +1,6 @@
 package ru.dins.scalashool.imageboard.controllers
 
-import ru.dins.scalashool.imageboard.models.HttpModels.{ApiError, ReferenceCreateBody, ReferenceResponseHttp}
+import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, ReferenceCreateBody, ReferenceResponse}
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.{endpoint, oneOf, path, statusMapping}
 import sttp.model.StatusCode
@@ -14,7 +14,7 @@ object ReferenceApi {
     endpoint.get
       .description("get by Id")
       .in("api" / "reference"/ path[Long])
-      .out(jsonBody[ReferenceResponseHttp])
+      .out(jsonBody[ReferenceResponse])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
@@ -27,7 +27,7 @@ object ReferenceApi {
       .description("create reference")
       .in("api" / "reference")
       .in(jsonBody[ReferenceCreateBody])
-      .out(jsonBody[ReferenceResponseHttp])
+      .out(jsonBody[ReferenceResponse])
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),

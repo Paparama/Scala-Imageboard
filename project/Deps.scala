@@ -9,7 +9,7 @@ object Deps {
     val testContainers = "0.38.8"
     val scalamock      = "4.4.0"
     val logback        = "1.2.3"
-    val configReader   = "1.3.1"
+    val configReader   = "0.15.0"
     val tapir     = "0.17.16"
   }
 
@@ -38,7 +38,7 @@ object Deps {
   )
 
   val configReader = Seq(
-    "com.typesafe" % "config" % Versions.configReader,
+    "com.github.pureconfig" %% "pureconfig" % Versions.configReader,
   )
 
   val scalaTest = Seq(

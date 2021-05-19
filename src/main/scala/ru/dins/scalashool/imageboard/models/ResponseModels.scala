@@ -5,18 +5,18 @@ import sttp.model.Part
 import java.io.File
 import java.time.LocalDateTime
 
-object HttpModels {
+object ResponseModels {
 
-  case class PostHttp(
-      images: List[ImageHttp],
+  case class PostResponse(
+      images: List[ImageResponse],
       text: String,
       createdAt: LocalDateTime,
-      referencesResponses: List[ReferenceResponseHttp],
-      referencesFrom: List[ReferenceResponseHttp],
+      referencesResponses: List[ReferenceResponse],
+      referencesFrom: List[ReferenceResponse],
       treadName: String,
   )
 
-  case class ImageHttp(
+  case class ImageResponse(
       path: String,
   )
 
@@ -24,17 +24,17 @@ object HttpModels {
       result: String,
   )
 
-  case class TopicHttp(
+  case class TopicResponse(
       name: String,
-      posts: List[PostHttp],
+      posts: List[PostResponse],
       boardName: String,
   )
 
-  case class BoardHttp(
+  case class BoardResponse(
       name: String,
   )
 
-  case class ReferenceResponseHttp(
+  case class ReferenceResponse(
       postId: Long,
       text: String,
   )
