@@ -11,6 +11,7 @@ import doobie.util.fragment.Fragment
 import doobie.util.fragments.{whereAnd, whereAndOpt}
 import doobie.util.invariant.InvariantViolation
 import doobie.util.transactor.Transactor.Aux
+import doobie.util.update.Update
 import ru.dins.scalashool.imageboard.Storage
 import ru.dins.scalashool.imageboard.models.DataBaseModels
 import ru.dins.scalashool.imageboard.models.DataBaseModels._
@@ -76,7 +77,7 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
   ): F[PostDB] = {
 
     sql"""INSERT INTO posts (text, created_at, topic_id)
-          values ($text, current_timestamp, $treadId,)""".update
+          values ($text, current_timestamp, $treadId)""".update
       .withUniqueGeneratedKeys[PostDB](
         "id",
         "text",
@@ -108,6 +109,15 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
         case Right(tread) => Applicative[F].pure(Right(tread))
         case Left(value)  => Applicative[F].pure(Left(value))
       }
+
+  override def createPostTransaction(      topicId: Long,
+                                  text: String,
+                                  refs: List[(Long, String)],
+                                  imagesPath: List[String]): F[(PostDB, Int, Int)] = (for {
+    post <- sql"""INSERT INTO posts (text, topic_id, created_at) values ($text, $topicId, current_timestamp)""".update.withUniqueGeneratedKeys[PostDB]("id", "text", "created_at", "topic_id")
+    images <- Update[(String, Long)]("""INSERT INTO images (path, post_id) values (?, ?)""").updateMany(imagesPath.zipAll(List(post.id), "", post.id))
+    refsDB <- Update[(Long, String, Long)]("""INSERT INTO post_references (reference_to, text, post_id) values (?, ?, ?)""").updateMany(refs.collect { it => (it._1, it._2, post.id)})
+  } yield (post, images, refsDB)).transact(xa)
 
   override def createImage(path: String, postId: Long): F[ImageDB] =
     sql"""INSERT INTO images (path, post_id) values ($path, $postId)""".update

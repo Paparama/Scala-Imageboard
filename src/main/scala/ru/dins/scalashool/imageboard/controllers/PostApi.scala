@@ -1,11 +1,12 @@
 package ru.dins.scalashool.imageboard.controllers
 
-import io.circe.generic.auto._
 import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, PostCreationBody, SuccessCreation}
+import sttp.tapir.json.circe.jsonBody
+import sttp.tapir.{endpoint, oneOf, path, statusMapping}
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
-import sttp.tapir.json.circe._
+import io.circe.generic.auto._
 
 object PostApi {
 
@@ -13,7 +14,7 @@ object PostApi {
     endpoint.post
       .description("create post")
       .in("api" / "post")
-      .in(jsonBody[PostCreationBody])
+      .in(multipartBody[PostCreationBody])
       .out(jsonBody[SuccessCreation])
       .errorOut(
         oneOf[ApiError](

@@ -18,13 +18,13 @@ object Routs {
   def getRouter[F[_]: Concurrent: ContextShift: Timer](blocker: Blocker, xa: Aux[F, Unit]) = {
     val storage           = PostgresStorage(xa)
     val modelConverter    = ModelConverter(storage)
-    val tapirPostService  = TapirPostAdapter(storage, modelConverter)
+    val tapirPostService  = TapirPostAdapter(storage, modelConverter)(blocker)
     val tapirTreadService = TapirTopicAdapter(storage, modelConverter)
     val tapirRefAdapter   = TapirReferenceAdapter(storage, modelConverter)
     val tapirBoardAdapter = TapirBoardAdapter(storage, modelConverter)
     val tapirImageAdapter = TapirImageAdapter(storage, modelConverter)
 
-    val addPostRoute    = Http4sServerInterpreter.toRoutes(PostApi.addPost)(tapirPostService.addPost)
+    val addPostRoute    = Http4sServerInterpreter.toRoutes(PostApi.addPost)(tapirPostService.addPost(_)(blocker))
     val deletePostRoute = Http4sServerInterpreter.toRoutes(PostApi.deletePost)(tapirPostService.deletePost)
 
     val getTreadRoute    = Http4sServerInterpreter.toRoutes(TopicApi.getTopic)(tapirTreadService.getTopic)

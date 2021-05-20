@@ -18,8 +18,6 @@ trait TapirImageAdapter[F[_]] {
 
 object TapirImageAdapter {
 
-
-
   def apply[F[_]: ContextShift : Sync](storage: PostgresStorage[F], modelConverter: ModelConverter[F]) = new TapirImageAdapter[F] {
 
     private def getInputStream(file: File): F[FileInputStream] = {

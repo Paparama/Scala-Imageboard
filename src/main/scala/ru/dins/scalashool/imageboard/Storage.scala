@@ -25,11 +25,11 @@ trait Storage[F[_]] {
 
   def getImage(id: Long): F[Either[ApiError, ImageDB]]
 
-  def getReference(id: Long):  F[Either[ApiError, ReferenceDB]]
+  def getReference(id: Long): F[Either[ApiError, ReferenceDB]]
 
   def getImagesBelongToPost(postId: Long): F[List[ImageDB]]
 
-  def getReferencesBelongToPost(postId: Long):  F[Either[ApiError, List[ReferenceDB]]]
+  def getReferencesBelongToPost(postId: Long): F[Either[ApiError, List[ReferenceDB]]]
 
   def deleteImage(id: Long): F[Unit]
 
@@ -46,4 +46,11 @@ trait Storage[F[_]] {
   def getReferencesAnswerToPost(postId: Long): F[Either[ApiError, List[ReferenceDB]]]
 
   def getEnrichedTopic(id: Long): F[Either[ApiError, List[EnrichedTopicDB]]]
+
+  def createPostTransaction(
+      topicId: Long,
+      text: String,
+      refs: List[(Long, String)],
+      imagesPath: List[String],
+  ): F[(PostDB, Int, Int)]
 }

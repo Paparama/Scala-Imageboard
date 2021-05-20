@@ -61,7 +61,7 @@ object ResponseModels {
 
   case class ApiError(code: Int, message: String)
 
-  case class PostCreationBody(treadId: Long, text: String, references: List[Long], imageIds: List[Long])
+  case class PostCreationBody(topicId: Long, text: String, images: Part[List[File]])
 
   case class PostUpdateBody(
       refRespIds: Option[List[Long]],

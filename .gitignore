@@ -16,6 +16,7 @@ project/plugins/project/
 
 .idea/
 .vscode/
+.uploadedFiles/
 
 # Eclipse specific
 .project
