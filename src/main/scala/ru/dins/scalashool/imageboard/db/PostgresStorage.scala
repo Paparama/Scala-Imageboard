@@ -8,7 +8,7 @@ import doobie.postgres.sqlstate
 import doobie.postgres.implicits._
 import doobie.util.Read
 import doobie.util.fragment.Fragment
-import doobie.util.fragments.{set, setOpt, whereAnd, whereAndOpt}
+import doobie.util.fragments.{whereAnd, whereAndOpt}
 import doobie.util.invariant.InvariantViolation
 import doobie.util.transactor.Transactor.Aux
 import ru.dins.scalashool.imageboard.Storage
@@ -66,13 +66,6 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
       .transact(xa)
   }
 
-  override def getPost(id: Long): F[Either[ApiError, PostDB]] = getSomething(id, CollectionsNameEnum.POSTS)
-
-  override def getPosts(treadId: Option[Long]): F[List[PostDB]] = treadId match {
-    case None     => getListOfSomething(CollectionsNameEnum.POSTS, None, None)
-    case Some(id) => getListOfSomething(CollectionsNameEnum.POSTS, Some(CollectionsNameEnum.TOPICS), Some(id))
-  }
-
   override def deletePost(id: Long): F[Unit] = deleteSomething(id, CollectionsNameEnum.POSTS)
 
   override def createPost(
@@ -82,16 +75,12 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
       imageIds: List[Long],
   ): F[PostDB] = {
 
-    val refFrom = List[Long]()
-    sql"""INSERT INTO posts (image_ids, text, created_at, references_responses, topic_id, references_from)
-          values ($imageIds, $text, current_timestamp, $references, $treadId, $refFrom)""".update
+    sql"""INSERT INTO posts (text, created_at, topic_id)
+          values ($text, current_timestamp, $treadId,)""".update
       .withUniqueGeneratedKeys[PostDB](
         "id",
-        "image_ids",
         "text",
         "created_at",
-        "references_responses",
-        "references_from",
         "tread_id",
       )
       .transact(xa)
@@ -120,76 +109,27 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
         case Left(value)  => Applicative[F].pure(Left(value))
       }
 
-  override def updatePost(
-      id: Long,
-      refRespIds: Option[List[Long]],
-      refFromIds: Option[List[Long]],
-      imageIds: Option[List[Long]],
-  ): F[Either[ApiError, PostDB]] = {
-    val update =
-      fr"UPDATE posts"
-
-    val set = setOpt(
-      refRespIds.map { rIds =>
-        fr"references_responses = references_responses || $rIds"
-      },
-    refFromIds.map { rIds =>
-      fr"references_from = references_from || $rIds"
-    },
-      imageIds.map { imIds =>
-        fr"text = image_ids || $imIds"
-      }
-    )
-
-    (update ++ set ++ idFilterFr(id)).update
-      .withUniqueGeneratedKeys[PostDB](
-        "id",
-        "image_ids",
-        "text",
-        "created_at",
-        "references_responses",
-        "references_from",
-        "tread_id",
-      )
-      .attempt
-      .transact(xa)
-      .handleError {
-        case erId: InvariantViolation => Left(erId)
-        case other                    => Left(other)
-      }
-      .map {
-        case Left(_: InvariantViolation) => Left(ApiError(404, s"Post with id=$id not found"))
-        case Left(_)                     => Left(ApiError(500, "server error"))
-        case Right(post)                 => Right(post)
-      }
-  }
-
-  override def updateTopic(id: Long, lastPostId: Long): F[TopicDB] =
-    (fr"UPDATE treads" ++ set(fr"last_msg_id=$lastPostId")).update
-      .withUniqueGeneratedKeys[TopicDB]("id", "name", "last_msg_id", "board_id")
-      .transact(xa)
-
   override def createImage(path: String, postId: Long): F[ImageDB] =
     sql"""INSERT INTO images (path, post_id) values ($path, $postId)""".update
       .withUniqueGeneratedKeys[ImageDB]("id", "path", "post_id")
       .transact(xa)
 
-  override def createReference(text: String, postId: Long, referenceTo: Long): F[ReferenceResponseDB] =
+  override def createReference(text: String, postId: Long, referenceTo: Long): F[ReferenceDB] =
     sql"""INSERT INTO post_references (reference_to, post_id, text)
           values ($referenceTo, $postId, $text)""".update
-      .withUniqueGeneratedKeys[ReferenceResponseDB]("id", "reference_to", "post_id", "text")
+      .withUniqueGeneratedKeys[ReferenceDB]("id", "reference_to", "post_id", "text")
       .transact(xa)
 
   override def getImage(id: Long): F[Either[ApiError, ImageDB]] = getSomething(id, CollectionsNameEnum.IMAGES)
 
   override def getImagesBelongToPost(postId: Long): F[List[ImageDB]] = getListOfSomething(CollectionsNameEnum.IMAGES, Some(CollectionsNameEnum.POSTS), Some(postId))
 
-  override def getReference(id: Long): F[Either[ApiError, ReferenceResponseDB]] =
+  override def getReference(id: Long): F[Either[ApiError, ReferenceDB]] =
     getSomething(id, CollectionsNameEnum.REFERENCES)
 
-  override def getReferencesBelongToPost(postId: Long): F[Either[ApiError, List[ReferenceResponseDB]]] =
+  override def getReferencesBelongToPost(postId: Long): F[Either[ApiError, List[ReferenceDB]]] =
     (sql"SELECT * FROM post_references " ++ fr"WHERE $postId = post_id")
-      .query[ReferenceResponseDB]
+      .query[ReferenceDB]
       .to[List]
       .transact(xa)
       .map(_.asRight)
@@ -199,9 +139,9 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
         case Right(refs)                 => Right(refs)
       }
 
-  override def getReferencesAnswerToPost(postId: Long): F[Either[ApiError, List[ReferenceResponseDB]]] =
+  override def getReferencesAnswerToPost(postId: Long): F[Either[ApiError, List[ReferenceDB]]] =
     (sql"SELECT * FROM post_references "  ++ whereAnd(fr"$postId = reference_to"))
-      .query[ReferenceResponseDB]
+      .query[ReferenceDB]
       .to[List]
       .transact(xa)
       .map(_.asRight)
@@ -215,13 +155,11 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
 
   override def deleteReference(id: Long): F[Unit] = deleteSomething(id, CollectionsNameEnum.REFERENCES)
 
-  override def getBoard(id: Long): F[Either[ApiError, BoardDB]] = getSomething(id, CollectionsNameEnum.BOARDS)
-
   override def getBoardWithTopic(id: Long): F[Either[ApiError, List[BoardWithTopicDB]]] = (fr"SELECT b.id, b.name, t.id, t.name" ++
     fr" FROM boards b" ++
     fr" LEFT JOIN topics t" ++
     fr" ON b.id = t.board_id "
-    ++ whereAnd(fr"b.id=$id")).query[BoardWithTopicDB]
+    ++ whereAnd(fr"b.id=$id") ++ fr"ORDER BY t.last_msg_created_time").query[BoardWithTopicDB]
     .to[List]
     .transact(xa)
     .map(_.asRight)
@@ -234,10 +172,9 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
   override def getBoards(): F[List[BoardDB]] = sql"SELECT * FROM boards".query[BoardDB].to[List].transact(xa)
 
   override def createBoard(name: String): F[Either[ApiError, BoardDB]] = {
-    val emptyList = List[Long]()
-    sql"""INSERT INTO boards (name, topic_ids)
-          values ($name, $emptyList)""".update
-    .withUniqueGeneratedKeys[BoardDB]("id", "name", "topic_ids")
+    sql"""INSERT INTO boards (name)
+          values ($name)""".update
+    .withUniqueGeneratedKeys[BoardDB]("id", "name")
     .transact(xa)
     .attemptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
       ApiError(422, s"Name $name already taken")
@@ -250,4 +187,20 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
 
   override def deleteBoard(id: Long): F[Unit] = deleteSomething(id, CollectionsNameEnum.BOARDS)
 
+  override def getEnrichedTopic(id: Long): F[Either[ApiError, List[EnrichedTopicDB]]] = (fr"SELECT t.id, t.name, t.board_id, p.id, p.text, p.created_at, i.path, prFrom.text, prFrom.post_id, prTo.text, prTo.reference_to" ++
+    fr" FROM topics t" ++
+    fr"""    LEFT JOIN posts p
+        |        ON t.id = p.topic_id
+        |    LEFT JOIN images i on p.id = i.post_id
+        |    LEFT JOIN post_references prTo on p.id = prTo.post_id
+        |    LEFT JOIN post_references prFrom on p.id = prFrom.reference_to""".stripMargin
+    ++ whereAnd(fr"t.id=$id")).query[EnrichedTopicDB]
+    .to[List]
+    .transact(xa)
+    .map(_.asRight)
+    .map {
+      case Left(_: InvariantViolation) => Left(ApiError(404, s"Topic with id=$id not found"))
+      case Left(_)                     => Left(ApiError(500, "Unexpected error"))
+      case Right(topic)                 => Right(topic)
+    }
 }

@@ -1,25 +1,13 @@
 package ru.dins.scalashool.imageboard.controllers
 
 import io.circe.generic.auto._
-import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, PostCreationBody, PostResponse, PostUpdateBody, SuccessCreation, SuccessUpdate}
+import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, PostCreationBody, SuccessCreation}
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
 
 object PostApi {
-
-  val getPost =
-    endpoint.get
-      .description("get by Id")
-      .in("api" / "post"/ path[Long])
-      .out(jsonBody[PostResponse])
-      .errorOut(
-        oneOf[ApiError](
-          statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
-          statusMapping(StatusCode.NotFound, jsonBody[ApiError]),
-        )
-      )
 
   val addPost =
     endpoint.post
@@ -30,19 +18,6 @@ object PostApi {
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
-        )
-      )
-
-  val updatePost =
-    endpoint.patch
-      .description("update post")
-      .in("api" / "post"/ path[Long])
-      .in(jsonBody[PostUpdateBody])
-      .out(jsonBody[SuccessUpdate])
-      .errorOut(
-        oneOf[ApiError](
-          statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
-          statusMapping(StatusCode.NotFound, jsonBody[ApiError]),
         )
       )
 

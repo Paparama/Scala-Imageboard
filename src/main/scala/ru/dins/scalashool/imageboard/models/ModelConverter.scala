@@ -1,60 +1,22 @@
 package ru.dins.scalashool.imageboard.models
 
-import cats.Applicative
-import cats.data.EitherT
 import cats.effect.Sync
-import cats.implicits._
 import ru.dins.scalashool.imageboard.db.PostgresStorage
 import ru.dins.scalashool.imageboard.models.DataBaseModels._
 import ru.dins.scalashool.imageboard.models.ResponseModels._
 
 trait ModelConverter[F[_]] {
-  def convertPost(post: PostDB): F[Either[ApiError, PostResponse]]
-  def convertTopic(topic: TopicDB): F[Either[ApiError, TopicResponse]]
   def convertImage(image: ImageDB): ImageResponse
-  def convertReference(reference: ReferenceResponseDB): ReferenceResponse
+  def convertReference(reference: ReferenceDB): ReferenceResponse
   def convertImages(images: List[ImageDB]): List[ImageResponse]
-  def convertReferences(references: List[ReferenceResponseDB]): List[ReferenceResponse]
+  def convertReferences(references: List[ReferenceDB]): List[ReferenceResponse]
   def convertBoardListDBToResponseListOfBoards(boardsDB: List[BoardDB]): ListOfBoardsResponse
   def convertBoardWithTopicToBoardResponse(boardsDB: List[BoardWithTopicDB]): BoardResponse
+  def convertEnrichedTopicsToResponse(topics: List[EnrichedTopicDB]): TopicResponse
 }
 
 object ModelConverter {
   def apply[F[_]: Sync](storage: PostgresStorage[F]) = new ModelConverter[F] {
-    override def convertPost(post: PostDB): F[Either[ApiError, PostResponse]] = post match {
-      case PostDB(id, imageIds, text, createdAt, referencesResponses, referencesFrom, topicId) =>
-        (for {
-          imagesDb                <- EitherT.right(storage.getImagesBelongToPost(id))
-          referencesResponsesFrom <- EitherT(storage.getReferencesBelongToPost(id))
-          topic                   <- EitherT(storage.getTopic(topicId))
-          referencesResponsesTo   <- EitherT(storage.getReferencesAnswerToPost(id))
-        } yield (imagesDb, referencesResponsesFrom, referencesResponsesTo, topic)).map {
-          case (
-                imagesDb: List[ImageDB],
-                referencesResponsesFrom: List[ReferenceResponseDB],
-                referencesResponsesTo: List[ReferenceResponseDB],
-                topic: TopicDB,
-              ) =>
-            PostResponse(
-              convertImages(imagesDb),
-              text,
-              createdAt,
-              convertReferences(referencesResponsesTo),
-              convertReferences(referencesResponsesFrom),
-              topic.name,
-            )
-        }.value
-    }
-
-    override def convertTopic(topic: TopicDB): F[Either[ApiError, TopicResponse]] = topic match {
-      case TopicDB(id, name, boardId, _) =>
-        (for {
-          postsDb   <- EitherT.right(storage.getPosts(Some(id)))
-          postsHttp <- EitherT(postsDb.map(convertPost).sequence.flatMap(it => Applicative[F].pure(it.sequence)))
-        } yield postsHttp).map { postsHttp =>
-          TopicResponse(id, name, postsHttp)
-        }.value
-    }
 
     override def convertImage(image: ImageDB): ImageResponse = image match {
       case ImageDB(_, path, _) => ImageResponse(path)
@@ -62,11 +24,11 @@ object ModelConverter {
 
     override def convertImages(images: List[ImageDB]): List[ImageResponse] = images.map(convertImage)
 
-    override def convertReferences(references: List[ReferenceResponseDB]): List[ReferenceResponse] =
+    override def convertReferences(references: List[ReferenceDB]): List[ReferenceResponse] =
       references.map(convertReference)
 
-    override def convertReference(reference: ReferenceResponseDB): ReferenceResponse = reference match {
-      case ReferenceResponseDB(_, _, text, postId) => ReferenceResponse(postId, text)
+    override def convertReference(reference: ReferenceDB): ReferenceResponse = reference match {
+      case ReferenceDB(_, _, text, postId) => ReferenceResponse(postId, text)
     }
 
     override def convertBoardListDBToResponseListOfBoards(boardsDB: List[BoardDB]): ListOfBoardsResponse = {
@@ -74,10 +36,33 @@ object ModelConverter {
       ListOfBoardsResponse(listOfBoards)
     }
     override def convertBoardWithTopicToBoardResponse(boardsDB: List[BoardWithTopicDB]): BoardResponse = {
-      val ListOfTopics = boardsDB collect {
-        case BoardWithTopicDB(_, _, Some(tId), Some(tName)) => TopicAtListResponse(tId, tName)
+      val ListOfTopics = boardsDB collect { case BoardWithTopicDB(_, _, Some(tId), Some(tName)) =>
+        TopicAtListResponse(tId, tName)
       }
       BoardResponse(boardsDB.head.id, boardsDB.head.name, ListOfTopics)
+    }
+
+    override def convertEnrichedTopicsToResponse(topics: List[EnrichedTopicDB]): TopicResponse = {
+
+      def getImageByPostId(postId: Long, enrichedTopicsDB: List[EnrichedTopicDB]): List[ImageResponse] = (enrichedTopicsDB collect {
+        case EnrichedTopicDB(id, name, boardId, Some(pId), postText, postCreated, Some(imagePath), refFromText, refFromPostId, refToText, refToPostId) if pId == postId => ImageResponse(imagePath)
+      }).distinct
+
+      def getRefToByPostId(postId: Long, enrichedTopicsDB: List[EnrichedTopicDB]): List[ReferenceResponse] = (enrichedTopicsDB collect {
+        case EnrichedTopicDB(id, name, boardId, Some(pId), postText, postCreated, imagePath, refFromText, refFromPostId, Some(refToText), Some(refToPostId)) if pId == postId => ReferenceResponse(refToPostId, refToText)
+      }).distinct
+
+      def getRefFromByPostId(postId: Long, enrichedTopicsDB: List[EnrichedTopicDB]): List[ReferenceResponse] = (enrichedTopicsDB collect {
+        case EnrichedTopicDB(id, name, boardId, Some(pId), postText, postCreated, imagePath, Some(refFromText), Some(refFromPostId), refToText, refToPostId) if pId == postId => ReferenceResponse(refFromPostId, refFromText)
+      }).distinct
+
+      val postData = (topics collect {
+        case EnrichedTopicDB(id, name, boardId, Some(postId), Some(postText), Some(postCreated), imagePath, refFromText, refFromPostId, refToText, refToPostId) => (postId, postText, postCreated)
+      }).distinct
+
+      TopicResponse(topics.head.id, topics.head.name, postData collect { it => PostResponse(it._1, it._2, it._3, getImageByPostId(it._1, topics), getRefToByPostId(it._1, topics), getRefFromByPostId(it._1, topics))
+      })
+
     }
   }
 }

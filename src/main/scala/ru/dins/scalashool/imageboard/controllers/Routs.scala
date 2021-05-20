@@ -24,15 +24,12 @@ object Routs {
     val tapirBoardAdapter = TapirBoardAdapter(storage, modelConverter)
     val tapirImageAdapter = TapirImageAdapter(storage, modelConverter)
 
-    val getPostRoute    = Http4sServerInterpreter.toRoutes(PostApi.getPost)(tapirPostService.getPost)
     val addPostRoute    = Http4sServerInterpreter.toRoutes(PostApi.addPost)(tapirPostService.addPost)
-    val updatePostRoute = Http4sServerInterpreter.toRoutes(PostApi.updatePost)(tapirPostService.updatePost)
     val deletePostRoute = Http4sServerInterpreter.toRoutes(PostApi.deletePost)(tapirPostService.deletePost)
 
-    val getTreadRoute    = Http4sServerInterpreter.toRoutes(TopicApi.getTopic)(tapirTreadService.getTread)
-    val addTreadRoute    = Http4sServerInterpreter.toRoutes(TopicApi.addTopic)(tapirTreadService.addTread)
-    val updateTreadRoute = Http4sServerInterpreter.toRoutes(TopicApi.updateTopic)(tapirTreadService.updateTread)
-    val deleteTreadRoute = Http4sServerInterpreter.toRoutes(TopicApi.deleteTopic)(tapirTreadService.deleteTread)
+    val getTreadRoute    = Http4sServerInterpreter.toRoutes(TopicApi.getTopic)(tapirTreadService.getTopic)
+    val addTreadRoute    = Http4sServerInterpreter.toRoutes(TopicApi.addTopic)(tapirTreadService.addTopic)
+    val deleteTreadRoute = Http4sServerInterpreter.toRoutes(TopicApi.deleteTopic)(tapirTreadService.deleteTopic)
 
     val getBoardRoute    = Http4sServerInterpreter.toRoutes(BoardApi.getBoard)(tapirBoardAdapter.getBoard)
     val addBoardRoute    = Http4sServerInterpreter.toRoutes(BoardApi.addBoard)(tapirBoardAdapter.addBoard)
@@ -46,18 +43,18 @@ object Routs {
     val addImageRoute    = Http4sServerInterpreter.toRoutes(ImageApi.addImage) (tapirImageAdapter.addImage(_)(blocker))
     val deleteImageRoute = Http4sServerInterpreter.toRoutes(ImageApi.deleteImage)(tapirImageAdapter.deleteImage)
 
-    val treadRoutsList = List(TopicApi.getTopic, TopicApi.addTopic, TopicApi.updateTopic, TopicApi.deleteTopic)
-    val postRoutsList  = List(PostApi.getPost, PostApi.addPost, PostApi.updatePost, PostApi.deletePost)
+    val topicRoutsList = List(TopicApi.getTopic, TopicApi.addTopic, TopicApi.updateTopic, TopicApi.deleteTopic)
+    val postRoutsList  = List(PostApi.addPost, PostApi.deletePost)
     val boardRoutsList = List(BoardApi.getBoard, BoardApi.addBoard, BoardApi.deleteBoard)
     val refRoutsList   = List(ReferenceApi.getReference, ReferenceApi.addRef, ReferenceApi.deleteRef)
 
-    val docs = OpenAPIDocsInterpreter.toOpenAPI(treadRoutsList ++ postRoutsList ++ boardRoutsList ++ refRoutsList, "Image Board API", "1.0")
+    val docs = OpenAPIDocsInterpreter.toOpenAPI(topicRoutsList ++ postRoutsList ++ boardRoutsList ++ refRoutsList, "Image Board API", "1.0")
 
     val swagger = new SwaggerHttp4s(docs.toYaml)
 
     Router(
-      "/" -> (getPostRoute <+> addPostRoute <+> updatePostRoute <+> deletePostRoute <+> getTreadRoute <+>
-        addTreadRoute <+> updateTreadRoute <+> deleteTreadRoute <+> getBoardRoute <+> addBoardRoute <+>
+      "/" -> (addPostRoute <+> deletePostRoute <+> getTreadRoute <+>
+        addTreadRoute <+> deleteTreadRoute <+> getBoardRoute <+> addBoardRoute <+>
         deleteBoardRoute <+> getRefRoute <+> addRefRoute <+> deleteRefRoute <+> getImageRoute <+> addImageRoute <+> deleteImageRoute),
       "/swagger" -> swagger.routes, // http://localhost:8080/swagger/docs
     ).orNotFound

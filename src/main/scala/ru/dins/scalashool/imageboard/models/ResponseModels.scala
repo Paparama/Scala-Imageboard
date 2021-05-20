@@ -8,12 +8,12 @@ import java.time.LocalDateTime
 object ResponseModels {
 
   case class PostResponse(
-      images: List[ImageResponse],
+      id: Long,
       text: String,
       createdAt: LocalDateTime,
-      referencesResponses: List[ReferenceResponse],
+      images: List[ImageResponse],
+      referencesTo: List[ReferenceResponse],
       referencesFrom: List[ReferenceResponse],
-      treadName: String,
   )
 
   case class ImageResponse(

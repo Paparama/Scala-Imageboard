@@ -45,7 +45,6 @@ object TapirImageAdapter {
       outSt <- getOutputStream(path.toFile)
       _ <- blocker.delay[F, Unit](inSt.transferTo(outSt))
       image <- storage.createImage(path.toString, body.postId)
-      _ <- storage.updatePost(body.postId, None, None, Some(List(image.id)))
     } yield SuccessCreation(s"image created successfully").asRight
 
     override def deleteImage(id: Long): F[Either[ApiError, Unit]] = storage.deleteImage(id).map(_.asRight)

@@ -4,22 +4,10 @@ import ru.dins.scalashool.imageboard.models.DataBaseModels._
 import ru.dins.scalashool.imageboard.models.ResponseModels.ApiError
 
 trait Storage[F[_]] {
-  def getPost(id: Long): F[Either[ApiError, PostDB]]
-
-  def getPosts(
-      treadId: Option[Long],
-  ): F[List[PostDB]]
 
   def deletePost(id: Long): F[Unit]
 
   def createPost(tread: Long, text: String, references: List[Long], imageIds: List[Long]): F[PostDB]
-
-  def updatePost(
-      id: Long,
-      refRespIds: Option[List[Long]],
-      refFromIds: Option[List[Long]],
-      imageIds: Option[List[Long]],
-  ): F[Either[ApiError, PostDB]]
 
   def getTopic(id: Long): F[Either[ApiError, TopicDB]]
 
@@ -31,25 +19,21 @@ trait Storage[F[_]] {
 
   def createTopic(board: Long, name: String): F[Either[ApiError, TopicDB]]
 
-  def updateTopic(id: Long, lastPostId: Long): F[TopicDB]
-
   def createImage(path: String, postId: Long): F[ImageDB]
 
-  def createReference(text: String, postId: Long, referenceTo: Long): F[ReferenceResponseDB]
+  def createReference(text: String, postId: Long, referenceTo: Long): F[ReferenceDB]
 
   def getImage(id: Long): F[Either[ApiError, ImageDB]]
 
-  def getReference(id: Long):  F[Either[ApiError, ReferenceResponseDB]]
+  def getReference(id: Long):  F[Either[ApiError, ReferenceDB]]
 
   def getImagesBelongToPost(postId: Long): F[List[ImageDB]]
 
-  def getReferencesBelongToPost(postId: Long):  F[Either[ApiError, List[ReferenceResponseDB]]]
+  def getReferencesBelongToPost(postId: Long):  F[Either[ApiError, List[ReferenceDB]]]
 
   def deleteImage(id: Long): F[Unit]
 
   def deleteReference(id: Long): F[Unit]
-
-  def getBoard(id: Long): F[Either[ApiError, BoardDB]]
 
   def getBoardWithTopic(id: Long): F[Either[ApiError, List[BoardWithTopicDB]]]
 
@@ -59,5 +43,7 @@ trait Storage[F[_]] {
 
   def deleteBoard(id: Long): F[Unit]
 
-  def getReferencesAnswerToPost(postId: Long): F[Either[ApiError, List[ReferenceResponseDB]]]
+  def getReferencesAnswerToPost(postId: Long): F[Either[ApiError, List[ReferenceDB]]]
+
+  def getEnrichedTopic(id: Long): F[Either[ApiError, List[EnrichedTopicDB]]]
 }

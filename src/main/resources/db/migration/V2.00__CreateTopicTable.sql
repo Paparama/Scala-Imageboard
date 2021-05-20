@@ -1,8 +1,8 @@
 
 create table if not exists topics(
                                      id BIGSERIAL PRIMARY KEY NOT NULL,
-                                     name text not null,
-                                     board_id bigint not null,
+                                     name text NOT NULL,
+                                     board_id bigint REFERENCES boards (id) NOT NULL,
                                      last_msg_created_time TIMESTAMP,
                                      UNIQUE(name)
 );
