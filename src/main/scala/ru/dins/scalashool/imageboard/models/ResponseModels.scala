@@ -29,13 +29,29 @@ object ResponseModels {
   )
 
   case class TopicResponse(
+      id: Long,
       name: String,
       posts: List[PostResponse],
-      boardName: String,
+  )
+
+  case class ListOfBoardsResponse(
+      boards: List[BoardAtListResponse],
+  )
+
+  case class BoardAtListResponse(
+      id: Long,
+      name: String,
+  )
+
+  case class TopicAtListResponse(
+      id: Long,
+      name: String,
   )
 
   case class BoardResponse(
+      id: Long,
       name: String,
+      topics: List[TopicAtListResponse],
   )
 
   case class ReferenceResponse(

@@ -37,6 +37,14 @@ object DataBaseModels {
   case class BoardDB(
       id: Long,
       name: String,
+      topic_ids: List[Long]
+  )
+
+  case class BoardWithTopicDB(
+      id: Long,
+      name: String,
+      topic_id: Option[Long],
+      topic_name: Option[String],
   )
 
 }

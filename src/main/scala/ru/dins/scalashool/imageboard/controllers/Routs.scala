@@ -14,7 +14,7 @@ import sttp.tapir.swagger.http4s.SwaggerHttp4s
 import sttp.tapir.openapi.circe.yaml._
 
 
-object Controller {
+object Routs {
   def getRouter[F[_]: Concurrent: ContextShift: Timer](blocker: Blocker, xa: Aux[F, Unit]) = {
     val storage           = PostgresStorage(xa)
     val modelConverter    = ModelConverter(storage)

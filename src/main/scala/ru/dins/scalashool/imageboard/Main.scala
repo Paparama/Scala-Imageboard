@@ -3,7 +3,7 @@ package ru.dins.scalashool.imageboard
 import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
 import cats.implicits.catsSyntaxFlatMapOps
 import ru.dins.scalashool.imageboard.config.DbConfigLoader
-import ru.dins.scalashool.imageboard.controllers.Controller
+import ru.dins.scalashool.imageboard.controllers.Routs
 import doobie.Transactor
 import org.flywaydb.core.Flyway
 import org.http4s.server.blaze.BlazeServerBuilder
@@ -29,7 +29,7 @@ object Main extends IOApp {
 
     val blocker = Blocker.liftExecutionContext(executionContext)
 
-    val httpApp = Controller.getRouter(blocker, xa)
+    val httpApp = Routs.getRouter(blocker, xa)
 
     val server: Resource[IO, Server[IO]] = BlazeServerBuilder[IO](ExecutionContext.global)
       .bindLocal(8080)

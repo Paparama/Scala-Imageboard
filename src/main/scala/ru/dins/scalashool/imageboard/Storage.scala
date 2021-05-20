@@ -51,6 +51,10 @@ trait Storage[F[_]] {
 
   def getBoard(id: Long): F[Either[ApiError, BoardDB]]
 
+  def getBoardWithTopic(id: Long): F[Either[ApiError, List[BoardWithTopicDB]]]
+
+  def getBoards(): F[List[BoardDB]]
+
   def createBoard(name: String): F[Either[ApiError, BoardDB]]
 
   def deleteBoard(id: Long): F[Unit]

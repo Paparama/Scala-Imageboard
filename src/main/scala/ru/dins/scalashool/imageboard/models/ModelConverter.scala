@@ -12,11 +12,11 @@ trait ModelConverter[F[_]] {
   def convertPost(post: PostDB): F[Either[ApiError, PostResponse]]
   def convertTopic(topic: TopicDB): F[Either[ApiError, TopicResponse]]
   def convertImage(image: ImageDB): ImageResponse
-  def convertBoard(board: BoardDB): BoardResponse
   def convertReference(reference: ReferenceResponseDB): ReferenceResponse
   def convertImages(images: List[ImageDB]): List[ImageResponse]
   def convertReferences(references: List[ReferenceResponseDB]): List[ReferenceResponse]
-
+  def convertBoardListDBToResponseListOfBoards(boardsDB: List[BoardDB]): ListOfBoardsResponse
+  def convertBoardWithTopicToBoardResponse(boardsDB: List[BoardWithTopicDB]): BoardResponse
 }
 
 object ModelConverter {
@@ -51,9 +51,8 @@ object ModelConverter {
         (for {
           postsDb   <- EitherT.right(storage.getPosts(Some(id)))
           postsHttp <- EitherT(postsDb.map(convertPost).sequence.flatMap(it => Applicative[F].pure(it.sequence)))
-          boardDb   <- EitherT(storage.getBoard(boardId))
-        } yield (postsHttp, boardDb)).map { case (postsHttp, boardDb: BoardDB) =>
-          TopicResponse(name, postsHttp, boardDb.name)
+        } yield postsHttp).map { postsHttp =>
+          TopicResponse(id, name, postsHttp)
         }.value
     }
 
@@ -66,10 +65,19 @@ object ModelConverter {
     override def convertReferences(references: List[ReferenceResponseDB]): List[ReferenceResponse] =
       references.map(convertReference)
 
-    override def convertBoard(board: BoardDB): BoardResponse = BoardResponse(board.name)
-
     override def convertReference(reference: ReferenceResponseDB): ReferenceResponse = reference match {
       case ReferenceResponseDB(_, _, text, postId) => ReferenceResponse(postId, text)
+    }
+
+    override def convertBoardListDBToResponseListOfBoards(boardsDB: List[BoardDB]): ListOfBoardsResponse = {
+      val listOfBoards: List[BoardAtListResponse] = boardsDB.collect(it => BoardAtListResponse(it.id, it.name))
+      ListOfBoardsResponse(listOfBoards)
+    }
+    override def convertBoardWithTopicToBoardResponse(boardsDB: List[BoardWithTopicDB]): BoardResponse = {
+      val ListOfTopics = boardsDB collect {
+        case BoardWithTopicDB(_, _, Some(tId), Some(tName)) => TopicAtListResponse(tId, tName)
+      }
+      BoardResponse(boardsDB.head.id, boardsDB.head.name, ListOfTopics)
     }
   }
 }

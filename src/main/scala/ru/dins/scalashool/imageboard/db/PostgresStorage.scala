@@ -83,7 +83,7 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
   ): F[PostDB] = {
 
     val refFrom = List[Long]()
-    sql"""INSERT INTO posts (image_ids, text, created_at, references_responses, tread_id, references_from)
+    sql"""INSERT INTO posts (image_ids, text, created_at, references_responses, topic_id, references_from)
           values ($imageIds, $text, current_timestamp, $references, $treadId, $refFrom)""".update
       .withUniqueGeneratedKeys[PostDB](
         "id",
@@ -108,9 +108,9 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
   override def deleteTopic(id: Long): F[Unit] = deleteSomething(id, CollectionsNameEnum.TOPICS)
 
   override def createTopic(boardId: Long, name: String): F[Either[ApiError, TopicDB]] =
-    sql"""INSERT INTO treads (name, board_id)
+    sql"""INSERT INTO topics (name, board_id)
           values ($name, $boardId)""".update
-      .withUniqueGeneratedKeys[TopicDB]("id", "name", "last_msg_created_time", "board_id")
+      .withUniqueGeneratedKeys[TopicDB]("id", "name", "board_id", "last_msg_created_time")
       .transact(xa)
       .attemptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
         ApiError(422, s"Name $name already taken")
@@ -217,10 +217,27 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
 
   override def getBoard(id: Long): F[Either[ApiError, BoardDB]] = getSomething(id, CollectionsNameEnum.BOARDS)
 
-  override def createBoard(name: String): F[Either[ApiError, BoardDB]] =
-    sql"""INSERT INTO boards (name)
-          values ($name)""".update
-    .withUniqueGeneratedKeys[BoardDB]("id", "name")
+  override def getBoardWithTopic(id: Long): F[Either[ApiError, List[BoardWithTopicDB]]] = (fr"SELECT b.id, b.name, t.id, t.name" ++
+    fr" FROM boards b" ++
+    fr" LEFT JOIN topics t" ++
+    fr" ON b.id = t.board_id "
+    ++ whereAnd(fr"b.id=$id")).query[BoardWithTopicDB]
+    .to[List]
+    .transact(xa)
+    .map(_.asRight)
+    .map {
+      case Left(_: InvariantViolation) => Left(ApiError(404, s"Board with id=$id not found"))
+      case Left(_)                     => Left(ApiError(500, "Unexpected error"))
+      case Right(boards)                 => Right(boards)
+    }
+
+  override def getBoards(): F[List[BoardDB]] = sql"SELECT * FROM boards".query[BoardDB].to[List].transact(xa)
+
+  override def createBoard(name: String): F[Either[ApiError, BoardDB]] = {
+    val emptyList = List[Long]()
+    sql"""INSERT INTO boards (name, topic_ids)
+          values ($name, $emptyList)""".update
+    .withUniqueGeneratedKeys[BoardDB]("id", "name", "topic_ids")
     .transact(xa)
     .attemptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
       ApiError(422, s"Name $name already taken")
@@ -229,6 +246,7 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
       case Right(tread) => Applicative[F].pure(Right(tread))
       case Left(value)  => Applicative[F].pure(Left(value))
     }
+  }
 
   override def deleteBoard(id: Long): F[Unit] = deleteSomething(id, CollectionsNameEnum.BOARDS)
 
