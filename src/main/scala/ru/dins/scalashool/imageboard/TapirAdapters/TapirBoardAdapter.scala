@@ -1,10 +1,14 @@
 package ru.dins.scalashool.imageboard.TapirAdapters
 
-import cats.Applicative
 import cats.effect.Sync
 import cats.implicits._
 import ru.dins.scalashool.imageboard.db.PostgresStorage
-import ru.dins.scalashool.imageboard.models.ResponseModels.{BoardCreateBody, BoardResponse, ListOfBoardsResponse, SuccessCreation}
+import ru.dins.scalashool.imageboard.models.ResponseModels.{
+  BoardCreateBody,
+  BoardResponse,
+  ListOfBoardsResponse,
+  SuccessCreation,
+}
 import ru.dins.scalashool.imageboard.models.{ApiError, ModelConverter}
 
 trait TapirBoardAdapter[F[_]] {
@@ -14,19 +18,20 @@ trait TapirBoardAdapter[F[_]] {
 }
 
 object TapirBoardAdapter {
-  def apply[F[_] : Sync](storage: PostgresStorage[F], modelConverter: ModelConverter[F]) = new TapirBoardAdapter[F] {
-    override def getBoard(id: Long): F[Either[ApiError, BoardResponse]] = storage.getBoardWithTopic(id).flatMap{
-      case Left(error) => Applicative[F].pure(Left(error))
-      case Right(boardDB) => Applicative[F].pure(Right(modelConverter.convertBoardWithTopicToBoardResponse(boardDB)))
+  def apply[F[_]: Sync](storage: PostgresStorage[F], modelConverter: ModelConverter[F]) = new TapirBoardAdapter[F] {
+    override def getBoard(id: Long): F[Either[ApiError, BoardResponse]] = storage.getBoardWithTopic(id).flatMap {
+      case Left(error)    => Sync[F].delay(Left(error))
+      case Right(boardDB) => Sync[F].delay(Right(modelConverter.convertBoardWithTopicToBoardResponse(boardDB)))
     }
 
-    override def addBoard(body: BoardCreateBody): F[Either[ApiError, SuccessCreation]] = storage.createBoard(body.name).flatMap{
-      case Left(error) => Applicative[F].pure(Left(error))
-      case Right(board) =>  Applicative[F].pure(Right(SuccessCreation(s"Board with name ${board.name} was created")))
-    }
+    override def addBoard(body: BoardCreateBody): F[Either[ApiError, SuccessCreation]] =
+      storage.createBoard(body.name).flatMap {
+        case Left(error)  => Sync[F].delay(Left(error))
+        case Right(board) => Sync[F].delay(Right(SuccessCreation(s"Board with name ${board.name} and id ${board.id} was created")))
+      }
 
     override def getBoards: F[Either[ApiError, ListOfBoardsResponse]] = storage.getBoards.flatMap { boardList =>
-    Applicative[F].pure(modelConverter.convertBoardListDBToResponseListOfBoards(boardList).asRight)
+      Sync[F].delay(modelConverter.convertBoardListDBToResponseListOfBoards(boardList).asRight)
     }
   }
 }

@@ -27,24 +27,91 @@ object ModelConverter {
 
     override def convertEnrichedTopicsToResponse(topics: List[EnrichedTopicDB]): TopicResponse = {
 
-      def getImageByPostId(postId: Long, enrichedTopicsDB: List[EnrichedTopicDB]): List[ImageResponse] = (enrichedTopicsDB collect {
-        case EnrichedTopicDB(id, name, boardId, Some(pId), postText, postCreated, Some(imagePath), refFromText, refFromPostId, refToText, refToPostId) if pId == postId => ImageResponse(imagePath)
-      }).distinct
+      def getImageByPostId(postId: Long, enrichedTopicsDB: List[EnrichedTopicDB]): List[ImageResponse] =
+        (enrichedTopicsDB collect {
+          case EnrichedTopicDB(
+                id,
+                name,
+                boardId,
+                Some(pId),
+                postText,
+                postCreated,
+                Some(imagePath),
+                refFromText,
+                refFromPostId,
+                refToText,
+                refToPostId,
+              ) if pId == postId =>
+            ImageResponse(imagePath)
+        }).distinct
 
-      def getRefToByPostId(postId: Long, enrichedTopicsDB: List[EnrichedTopicDB]): List[ReferenceResponse] = (enrichedTopicsDB collect {
-        case EnrichedTopicDB(id, name, boardId, Some(pId), postText, postCreated, imagePath, refFromText, refFromPostId, Some(refToText), Some(refToPostId)) if pId == postId => ReferenceResponse(refToPostId, refToText)
-      }).distinct
+      def getRefToByPostId(postId: Long, enrichedTopicsDB: List[EnrichedTopicDB]): List[ReferenceResponse] =
+        (enrichedTopicsDB collect {
+          case EnrichedTopicDB(
+                id,
+                name,
+                boardId,
+                Some(pId),
+                postText,
+                postCreated,
+                imagePath,
+                refFromText,
+                refFromPostId,
+                Some(refToText),
+                Some(refToPostId),
+              ) if pId == postId =>
+            ReferenceResponse(refToPostId, refToText)
+        }).distinct
 
-      def getRefFromByPostId(postId: Long, enrichedTopicsDB: List[EnrichedTopicDB]): List[ReferenceResponse] = (enrichedTopicsDB collect {
-        case EnrichedTopicDB(id, name, boardId, Some(pId), postText, postCreated, imagePath, Some(refFromText), Some(refFromPostId), refToText, refToPostId) if pId == postId => ReferenceResponse(refFromPostId, refFromText)
-      }).distinct
+      def getRefFromByPostId(postId: Long, enrichedTopicsDB: List[EnrichedTopicDB]): List[ReferenceResponse] =
+        (enrichedTopicsDB collect {
+          case EnrichedTopicDB(
+                id,
+                name,
+                boardId,
+                Some(pId),
+                postText,
+                postCreated,
+                imagePath,
+                Some(refFromText),
+                Some(refFromPostId),
+                refToText,
+                refToPostId,
+              ) if pId == postId =>
+            ReferenceResponse(refFromPostId, refFromText)
+        }).distinct
 
       val postData = (topics collect {
-        case EnrichedTopicDB(id, name, boardId, Some(postId), Some(postText), Some(postCreated), imagePath, refFromText, refFromPostId, refToText, refToPostId) => (postId, postText, postCreated)
+        case EnrichedTopicDB(
+              id,
+              name,
+              boardId,
+              Some(postId),
+              Some(postText),
+              Some(postCreated),
+              imagePath,
+              refFromText,
+              refFromPostId,
+              refToText,
+              refToPostId,
+            ) =>
+          (postId, postText, postCreated)
       }).distinct
 
-      TopicResponse(topics.head.id, topics.head.name, postData collect { it => PostResponse(it._1, it._2, it._3, getImageByPostId(it._1, topics), getRefToByPostId(it._1, topics), getRefFromByPostId(it._1, topics))
-      })
+      TopicResponse(
+        topics.head.id,
+        topics.head.name,
+        postData collect { it =>
+          PostResponse(
+            it._1,
+            it._2,
+            it._3,
+            getImageByPostId(it._1, topics),
+            getRefToByPostId(it._1, topics),
+            getRefFromByPostId(it._1, topics),
+          )
+        },
+      )
 
     }
   }

@@ -10,8 +10,9 @@ object Deps {
     val scalamock      = "4.4.0"
     val logback        = "1.2.3"
     val configReader   = "0.15.0"
-    val tapir     = "0.17.16"
-    val flyway     = "7.9.1"
+    val tapir          = "0.17.16"
+    val flyway         = "7.9.1"
+    val javax          = "1.6.2"
   }
 
   val http4s = Seq(
@@ -66,5 +67,9 @@ object Deps {
 
   val flyway = Seq(
     "org.flywaydb" % "flyway-core" % Versions.flyway,
+  )
+
+  val javax = Seq(
+    "com.sun.mail" % "javax.mail" % Versions.javax,
   )
 }

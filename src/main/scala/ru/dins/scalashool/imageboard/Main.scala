@@ -1,41 +1,49 @@
 package ru.dins.scalashool.imageboard
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
-import cats.implicits.catsSyntaxFlatMapOps
-import ru.dins.scalashool.imageboard.config.DbConfigLoader
+import ru.dins.scalashool.imageboard.config.ConfigLoader
 import ru.dins.scalashool.imageboard.controllers.Routs
 import doobie.Transactor
 import org.flywaydb.core.Flyway
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.Server
+import ru.dins.scalashool.imageboard.mailClient.MailClient
 
 import scala.concurrent.ExecutionContext
 
 
+
 object Main extends IOApp {
-  override def run(args: List[String]): IO[ExitCode] =  DbConfigLoader.load[IO].flatMap{ config =>
-
-    val DB_DRIVER      = config.driver
-    val DB_URL         = config.url
-    val DB_USER        = config.user
-    val DB_PASS        = config.password
-
+  override def run(args: List[String]): IO[ExitCode] =  ConfigLoader.load[IO].flatMap{ config =>
     val xa = Transactor.fromDriverManager[IO](
-      DB_DRIVER,
-      DB_URL,
-      DB_USER,
-      DB_PASS,
+      config.db.driver,
+      config.db.url,
+      config.db.user,
+      config.db.password,
     )
+
+    val mailClient = MailClient[IO](config.mail)
 
     val blocker = Blocker.liftExecutionContext(executionContext)
 
-    val httpApp = Routs.getRouter(blocker, xa)
+    val httpApp = Routs.getRouter(blocker, xa, mailClient, config.app)
 
     val server: Resource[IO, Server[IO]] = BlazeServerBuilder[IO](ExecutionContext.global)
-      .bindLocal(8080)
+      .bindHttp(config.app.port, "0.0.0.0")
       .withHttpApp(httpApp)
       .resource
 
-    IO.pure(new Flyway(Flyway.configure().dataSource(config.url, config.user, config.password)).migrate).void >> server.use(_ => IO.never).as(ExitCode.Success)
+    for {
+      _ <- IO.delay {
+        new Flyway(
+          Flyway.configure().dataSource(
+            config.db.url,
+            config.db.user,
+            config.db.password
+          )
+        ).migrate()
+      }
+      _ <- server.use(_ => IO.never)
+    } yield ExitCode.Success
   }
 }

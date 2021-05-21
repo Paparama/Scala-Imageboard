@@ -5,10 +5,10 @@ import java.time.LocalDateTime
 object DataBaseModels {
 
   case class PostDB(
-                     id: Long,
-                     text: String,
-                     createdAt: LocalDateTime,
-                     topicId: Long,
+      id: Long,
+      text: String,
+      createdAt: LocalDateTime,
+      topicId: Long,
   )
 
   case class EnrichedTopicDB(
@@ -38,10 +38,10 @@ object DataBaseModels {
   )
 
   case class BoardWithTopicDB(
-                               id: Long,
-                               name: String,
-                               topicId: Option[Long],
-                               topicName: Option[String],
+      id: Long,
+      name: String,
+      topicId: Option[Long],
+      topicName: Option[String],
   )
 
 }

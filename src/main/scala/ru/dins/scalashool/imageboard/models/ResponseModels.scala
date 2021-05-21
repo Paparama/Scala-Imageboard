@@ -24,6 +24,10 @@ object ResponseModels {
       result: String,
   )
 
+  case class SuccessUnsubscribe(
+      result: String,
+  )
+
   case class TopicResponse(
       id: Long,
       name: String,
@@ -56,8 +60,10 @@ object ResponseModels {
   )
 
   case class PostCreationBody(topicId: Long, text: String, images: Part[List[File]])
+  case class UnsubscribeBody(email: String, topicId: Long)
 
   case class TopicCreationBody(boardId: Long, name: String)
   case class BoardCreateBody(name: String)
+  case class SubscribeCreateBody(email: String, topicId: Long)
 
 }

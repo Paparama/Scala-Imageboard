@@ -24,5 +24,11 @@ trait Storage[F[_]] {
       text: String,
       refs: List[(Long, String)],
       imagesPath: List[String],
-  ): F[(PostDB, Int, Int)]
+  ):  F[Either[ApiError,PostDB]]
+
+  def createSubscribe(email: String, topicId: Long): F[Either[ApiError, Unit]]
+
+  def deleteSubscription(email: String, topicId: Long): F[Int]
+
+  def getSubscribers(topicId: Long): F[List[String]]
 }

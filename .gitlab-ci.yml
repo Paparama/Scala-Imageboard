@@ -1,0 +1,40 @@
+image: eu.gcr.io/dins-scala-school/docker-scala:latest
+
+stages:
+  - test
+  - publish
+  - deploy
+
+Test:
+  stage: test
+  script:
+    - sbt clean test
+
+Publish:
+  only:
+    - master
+    - main
+  stage: publish
+  script:
+    - echo "${KEYFILE}" | docker login -u "_json_key" --password-stdin "https://eu.gcr.io"
+    - sbt docker:publish
+
+Deploy:
+  when: manual
+  only:
+    - master
+    - main
+  stage: deploy
+  script:
+    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@scala-school-gitlab.dins.ru/daniil.leontiev/deployments
+    - export APPNAME=$(echo $CI_PROJECT_NAME | sed 's/\.//')
+    - export GIT_VERSION=$(git rev-parse --short HEAD)
+    - export APP_VERSION=${VERSION:-$GIT_VERSION}
+    - export NAMESPACE=$(echo $CI_PROJECT_ROOT_NAMESPACE | sed 's/\.//')
+    - export IMAGE="eu.gcr.io/dins-scala-school/$APPNAME:$APP_VERSION"
+    - envsubst < deployments/common/deploy.yaml > deploy.yaml
+    - cat deploy.yaml
+    - gcloud auth activate-service-account --key-file=<(echo $KEYFILE)
+    - gcloud config set project dins-scala-school
+    - gcloud container clusters get-credentials scala-school-cluster --region=europe-north1
+    - kubectl apply -f deploy.yaml

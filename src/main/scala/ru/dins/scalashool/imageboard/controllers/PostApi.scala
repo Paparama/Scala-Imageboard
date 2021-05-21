@@ -7,7 +7,7 @@ import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import io.circe.generic.auto._
-import ru.dins.scalashool.imageboard.models.{ApiError, UnprocessableEntity}
+import ru.dins.scalashool.imageboard.models.{ApiError, UnprocessableEntity, WrongContentType}
 
 object PostApi {
 
@@ -20,8 +20,8 @@ object PostApi {
       .out(statusCode(StatusCode.Created))
       .errorOut(
         oneOf[ApiError](
-          statusMapping(
-            StatusCode.UnprocessableEntity, jsonBody[UnprocessableEntity]),
+          statusMapping(StatusCode.UnprocessableEntity, jsonBody[UnprocessableEntity]),
+          statusMapping(StatusCode.UnsupportedMediaType, jsonBody[WrongContentType]),
         )
       )
 }
