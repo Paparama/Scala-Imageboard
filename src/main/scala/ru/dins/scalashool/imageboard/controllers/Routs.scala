@@ -43,6 +43,7 @@ object Routs {
       "/" -> (addPostRoute <+> getTreadRoute <+> getBoardsRoute <+>
         addTreadRoute  <+> getBoardRoute <+> addBoardRoute),
       "/swagger" -> swagger.routes, // http://localhost:8080/swagger/docs
+      "/files" -> StaticFileRouter.staticRoutes[F](blocker),
     ).orNotFound
   }
 }
