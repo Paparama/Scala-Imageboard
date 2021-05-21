@@ -14,7 +14,6 @@ import java.util.UUID
 trait TapirPostAdapter[F[_]] {
 
   def addPost(body: PostCreationBody)(blocker: Blocker): F[Either[ApiError, SuccessCreation]]
-  def deletePost(id: Long): F[Either[ApiError, Unit]]
 
 }
 
@@ -83,6 +82,5 @@ object TapirPostAdapter {
       }
     }
 
-    override def deletePost(id: Long): F[Either[ApiError, Unit]] = storage.deletePost(id).map(_.asRight)
   }
 }

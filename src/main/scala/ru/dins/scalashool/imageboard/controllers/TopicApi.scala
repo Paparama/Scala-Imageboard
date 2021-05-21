@@ -1,7 +1,7 @@
 package ru.dins.scalashool.imageboard.controllers
 
 import io.circe.generic.auto._
-import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, SuccessCreation, TopicCreationBody, TopicResponse, TopicUpdateBody}
+import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, SuccessCreation, TopicCreationBody, TopicResponse}
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
@@ -31,30 +31,6 @@ object TopicApi {
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
           statusMapping(StatusCode.UnprocessableEntity, jsonBody[ApiError]),
-        )
-      )
-
-  val updateTopic =
-    endpoint.patch
-      .description("update topic")
-      .in("api" / "topic"/ path[Long])
-      .in(jsonBody[TopicUpdateBody])
-      .out(jsonBody[TopicResponse])
-      .errorOut(
-        oneOf[ApiError](
-          statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
-          statusMapping(StatusCode.NotFound, jsonBody[ApiError]),
-        )
-      )
-
-  val deleteTopic =
-    endpoint.delete
-      .description("delete topic")
-      .in("api" / "topic" / path[Long])
-      .errorOut(
-        oneOf[ApiError](
-          statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
-          statusMapping(StatusCode.NotFound, jsonBody[ApiError]),
         )
       )
 }

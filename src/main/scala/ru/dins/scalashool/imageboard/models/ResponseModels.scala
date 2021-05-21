@@ -24,10 +24,6 @@ object ResponseModels {
       result: String,
   )
 
-  case class SuccessUpdate(
-      result: String,
-  )
-
   case class TopicResponse(
       id: Long,
       name: String,
@@ -63,17 +59,7 @@ object ResponseModels {
 
   case class PostCreationBody(topicId: Long, text: String, images: Part[List[File]])
 
-  case class PostUpdateBody(
-      refRespIds: Option[List[Long]],
-      refFromIds: Option[List[Long]],
-      imageIds: Option[List[Long]],
-  )
-
   case class TopicCreationBody(boardId: Long, name: String)
-  case class TopicUpdateBody(lastMessageId: Long)
-  case class ReferenceCreateBody(postId: Long, text: String, referenceTo: Long)
   case class BoardCreateBody(name: String)
-
-  case class ImageUpload(postId: Long, data: Part[File])
 
 }

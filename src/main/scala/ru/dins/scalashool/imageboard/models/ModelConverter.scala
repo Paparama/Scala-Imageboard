@@ -6,8 +6,6 @@ import ru.dins.scalashool.imageboard.models.DataBaseModels._
 import ru.dins.scalashool.imageboard.models.ResponseModels._
 
 trait ModelConverter[F[_]] {
-  def convertImage(image: ImageDB): ImageResponse
-  def convertImages(images: List[ImageDB]): List[ImageResponse]
   def convertBoardListDBToResponseListOfBoards(boardsDB: List[BoardDB]): ListOfBoardsResponse
   def convertBoardWithTopicToBoardResponse(boardsDB: List[BoardWithTopicDB]): BoardResponse
   def convertEnrichedTopicsToResponse(topics: List[EnrichedTopicDB]): TopicResponse
@@ -15,12 +13,6 @@ trait ModelConverter[F[_]] {
 
 object ModelConverter {
   def apply[F[_]: Sync](storage: PostgresStorage[F]) = new ModelConverter[F] {
-
-    override def convertImage(image: ImageDB): ImageResponse = image match {
-      case ImageDB(_, path, _) => ImageResponse(path)
-    }
-
-    override def convertImages(images: List[ImageDB]): List[ImageResponse] = images.map(convertImage)
 
     override def convertBoardListDBToResponseListOfBoards(boardsDB: List[BoardDB]): ListOfBoardsResponse = {
       val listOfBoards: List[BoardAtListResponse] = boardsDB.collect(it => BoardAtListResponse(it.id, it.name))

@@ -45,15 +45,4 @@ object BoardApi {
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
         )
       )
-
-  val deleteBoard =
-    endpoint.delete
-      .description("delete board")
-      .in("api" / "board" / path[Long])
-      .errorOut(
-        oneOf[ApiError](
-          statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
-          statusMapping(StatusCode.NotFound, jsonBody[ApiError]),
-        )
-      )
 }

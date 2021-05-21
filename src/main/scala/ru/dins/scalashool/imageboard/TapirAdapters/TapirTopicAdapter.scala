@@ -13,8 +13,6 @@ trait TapirTopicAdapter[F[_]] {
 
   def addTopic(body: TopicCreationBody): F[Either[ApiError, SuccessCreation]]
 
-  def deleteTopic(id: Long): F[Either[ApiError, Unit]]
-
 }
 
 object TapirTopicAdapter {
@@ -31,8 +29,6 @@ object TapirTopicAdapter {
         case Right(topicDB) => Applicative[F].pure(Right(SuccessCreation(s"Topic with name ${topicDB.name} was created")))
       }
     }
-
-    override def deleteTopic(id: Long): F[Either[ApiError, Unit]] = storage.deleteTopic(id).map(_.asRight)
   }
 }
 
