@@ -49,12 +49,14 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
       .withUniqueGeneratedKeys[TopicDB]("id", "name", "board_id", "last_msg_created_time")
   } yield (post, images, refsDB)).transact(xa)
 
+  def getPostCount(topicId: Long): F[Int] = sql"SELECT COUNT(*) FROM posts p JOIN topics t on p.topic_id = t.id WHERE t.id = $topicId".query[Int].unique.transact(xa)
+
   override def getBoardWithTopic(id: Long): F[Either[ApiError, List[BoardWithTopicDB]]] =
     (fr"SELECT b.id, b.name, t.id, t.name" ++
       fr" FROM boards b" ++
       fr" LEFT JOIN topics t" ++
       fr" ON b.id = t.board_id "
-      ++ whereAnd(fr"b.id=$id") ++ fr"ORDER BY t.last_msg_created_time")
+      ++ whereAnd(fr"b.id=$id") ++ fr"ORDER BY t.last_msg_created_time DESC")
       .query[BoardWithTopicDB]
       .to[List]
       .transact(xa)
@@ -88,7 +90,7 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
         |    LEFT JOIN images i on p.id = i.post_id
         |    LEFT JOIN post_references prTo on p.id = prTo.post_id
         |    LEFT JOIN post_references prFrom on p.id = prFrom.reference_to""".stripMargin
-      ++ whereAnd(fr"t.id=$id") ++ fr"ORDER BY p.created_at")
+      ++ whereAnd(fr"t.id=$id") ++ fr"ORDER BY p.created_at DESC")
       .query[EnrichedTopicDB]
       .to[List]
       .transact(xa)
@@ -98,4 +100,6 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
         case Left(_)                     => Left(ApiError(500, "Unexpected error"))
         case Right(topic)                => Right(topic)
       }
+
+  override def deleteTopic(topicId: Long): F[Unit] = (sql"DELETE FROM topics " ++ whereAnd(fr"id=$topicId")).update.run.transact(xa).void
 }

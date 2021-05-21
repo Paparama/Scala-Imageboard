@@ -15,6 +15,8 @@ trait Storage[F[_]] {
 
   def getEnrichedTopic(id: Long): F[Either[ApiError, List[EnrichedTopicDB]]]
 
+  def deleteTopic(topicId: Long): F[Unit]
+
   def createPostTransaction(
       topicId: Long,
       text: String,
