@@ -69,7 +69,7 @@ object TapirPostAdapter {
       body.images.body match {
         case Nil =>
           storage
-            .createPostTransaction(body.topicId, body.text, listOfRefs, List())
+            .createPostTransaction(body.topicId, body.text, listOfRefs, List.empty)
             .flatMap(_ => Applicative[F].pure(SuccessCreation("Post created").asRight))
         case lst =>
           if (checkMediaHeader(body)) {

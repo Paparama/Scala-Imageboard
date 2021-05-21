@@ -40,7 +40,7 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
     post <- sql"""INSERT INTO posts (text, topic_id, created_at) values ($text, $topicId, current_timestamp)""".update
       .withUniqueGeneratedKeys[PostDB]("id", "text", "created_at", "topic_id")
     images <- Update[(String, Long)]("""INSERT INTO images (path, post_id) values (?, ?)""").updateMany(
-      imagesPath.zipAll(List(post.id), "", post.id),
+      imagesPath.map(it => (it, post.id)),
     )
     refsDB <- Update[(Long, String, Long)](
       """INSERT INTO post_references (reference_to, text, post_id) values (?, ?, ?)""",
