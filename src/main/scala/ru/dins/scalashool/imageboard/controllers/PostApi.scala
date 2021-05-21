@@ -1,12 +1,13 @@
 package ru.dins.scalashool.imageboard.controllers
 
-import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, PostCreationBody, SuccessCreation}
+import ru.dins.scalashool.imageboard.models.ResponseModels.{PostCreationBody, SuccessCreation}
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.{endpoint, oneOf, statusMapping}
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import io.circe.generic.auto._
+import ru.dins.scalashool.imageboard.models.{ApiError, UnprocessableEntity}
 
 object PostApi {
 
@@ -16,9 +17,11 @@ object PostApi {
       .in("api" / "post")
       .in(multipartBody[PostCreationBody])
       .out(jsonBody[SuccessCreation])
+      .out(statusCode(StatusCode.Created))
       .errorOut(
         oneOf[ApiError](
-          statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
+          statusMapping(
+            StatusCode.UnprocessableEntity, jsonBody[UnprocessableEntity]),
         )
       )
 }

@@ -1,7 +1,8 @@
 package ru.dins.scalashool.imageboard.controllers
 
 import io.circe.generic.auto._
-import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, SuccessCreation, TopicCreationBody, TopicResponse}
+import ru.dins.scalashool.imageboard.models.{ApiError, NotFound, UnprocessableEntity}
+import ru.dins.scalashool.imageboard.models.ResponseModels.{SuccessCreation, TopicCreationBody, TopicResponse}
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
@@ -16,8 +17,7 @@ object TopicApi {
       .out(jsonBody[TopicResponse])
       .errorOut(
         oneOf[ApiError](
-          statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
-          statusMapping(StatusCode.NotFound, jsonBody[ApiError]),
+          statusMapping(StatusCode.NotFound, jsonBody[NotFound]),
         )
       )
 
@@ -27,10 +27,10 @@ object TopicApi {
       .in("api" / "topic")
       .in(jsonBody[TopicCreationBody])
       .out(jsonBody[SuccessCreation])
+      .out(statusCode(StatusCode.Created))
       .errorOut(
         oneOf[ApiError](
-          statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
-          statusMapping(StatusCode.UnprocessableEntity, jsonBody[ApiError]),
+          statusMapping(StatusCode.UnprocessableEntity, jsonBody[UnprocessableEntity]),
         )
       )
 }

@@ -55,8 +55,6 @@ object ResponseModels {
       text: String,
   )
 
-  case class ApiError(code: Int, message: String)
-
   case class PostCreationBody(topicId: Long, text: String, images: Part[List[File]])
 
   case class TopicCreationBody(boardId: Long, name: String)

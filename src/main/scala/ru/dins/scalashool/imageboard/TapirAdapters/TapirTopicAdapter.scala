@@ -4,8 +4,8 @@ import cats.Applicative
 import cats.effect.Sync
 import cats.implicits._
 import ru.dins.scalashool.imageboard.db.PostgresStorage
-import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, SuccessCreation, TopicCreationBody, TopicResponse}
-import ru.dins.scalashool.imageboard.models.ModelConverter
+import ru.dins.scalashool.imageboard.models.ResponseModels.{SuccessCreation, TopicCreationBody, TopicResponse}
+import ru.dins.scalashool.imageboard.models.{ApiError, ModelConverter}
 
 trait TapirTopicAdapter[F[_]] {
 

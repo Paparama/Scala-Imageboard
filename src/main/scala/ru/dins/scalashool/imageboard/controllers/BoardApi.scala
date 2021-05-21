@@ -1,12 +1,13 @@
 package ru.dins.scalashool.imageboard.controllers
 
-import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, BoardCreateBody, BoardResponse, ListOfBoardsResponse, SuccessCreation}
+import ru.dins.scalashool.imageboard.models.ResponseModels.{BoardCreateBody, BoardResponse, ListOfBoardsResponse, SuccessCreation}
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.{endpoint, oneOf, path, statusMapping}
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import io.circe.generic.auto._
+import ru.dins.scalashool.imageboard.models.{ApiError, NotFound, UnprocessableEntity}
 
 object BoardApi {
 
@@ -17,8 +18,7 @@ object BoardApi {
       .out(jsonBody[BoardResponse])
       .errorOut(
         oneOf[ApiError](
-          statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
-          statusMapping(StatusCode.NotFound, jsonBody[ApiError]),
+          statusMapping(StatusCode.NotFound, jsonBody[NotFound]),
         )
       )
 
@@ -30,7 +30,6 @@ object BoardApi {
       .errorOut(
         oneOf[ApiError](
           statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
-          statusMapping(StatusCode.NotFound, jsonBody[ApiError]),
         )
       )
 
@@ -40,9 +39,10 @@ object BoardApi {
       .in("api" / "board")
       .in(jsonBody[BoardCreateBody])
       .out(jsonBody[SuccessCreation])
+      .out(statusCode(StatusCode.Created))
       .errorOut(
         oneOf[ApiError](
-          statusMapping(StatusCode.InternalServerError, jsonBody[ApiError]),
+          statusMapping(StatusCode.UnprocessableEntity, jsonBody[UnprocessableEntity]),
         )
       )
 }

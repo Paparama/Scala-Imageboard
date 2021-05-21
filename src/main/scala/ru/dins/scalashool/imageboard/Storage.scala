@@ -1,7 +1,7 @@
 package ru.dins.scalashool.imageboard
 
+import ru.dins.scalashool.imageboard.models.ApiError
 import ru.dins.scalashool.imageboard.models.DataBaseModels._
-import ru.dins.scalashool.imageboard.models.ResponseModels.ApiError
 
 trait Storage[F[_]] {
 
@@ -16,6 +16,8 @@ trait Storage[F[_]] {
   def getEnrichedTopic(id: Long): F[Either[ApiError, List[EnrichedTopicDB]]]
 
   def deleteTopic(topicId: Long): F[Unit]
+
+  def getCountPostsById(ids: List[Long]): F[Int]
 
   def createPostTransaction(
       topicId: Long,

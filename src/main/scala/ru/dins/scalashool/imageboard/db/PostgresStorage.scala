@@ -7,12 +7,11 @@ import doobie.implicits._
 import doobie.postgres.sqlstate
 import doobie.postgres.implicits._
 import doobie.util.fragments.whereAnd
-import doobie.util.invariant.InvariantViolation
 import doobie.util.transactor.Transactor.Aux
 import doobie.util.update.Update
 import ru.dins.scalashool.imageboard.Storage
+import ru.dins.scalashool.imageboard.models.{ApiError, NotFound, UnprocessableEntity}
 import ru.dins.scalashool.imageboard.models.DataBaseModels._
-import ru.dins.scalashool.imageboard.models.ResponseModels.ApiError
 
 case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
 
@@ -24,7 +23,7 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
       .withUniqueGeneratedKeys[TopicDB]("id", "name", "board_id", "last_msg_created_time")
       .transact(xa)
       .attemptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
-        ApiError(422, s"Name $name already taken")
+        UnprocessableEntity(s"Name $name already taken")
       }
       .flatMap {
         case Right(tread) => Applicative[F].pure(Right(tread))
@@ -60,11 +59,9 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
       .query[BoardWithTopicDB]
       .to[List]
       .transact(xa)
-      .map(_.asRight)
       .map {
-        case Left(_: InvariantViolation) => Left(ApiError(404, s"Board with id=$id not found"))
-        case Left(_)                     => Left(ApiError(500, "Unexpected error"))
-        case Right(boards)               => Right(boards)
+        case Nil => Left(NotFound(s"Board with id $id not found"))
+        case boards => Right(boards)
       }
 
   override def getBoards: F[List[BoardDB]] = sql"SELECT * FROM boards".query[BoardDB].to[List].transact(xa)
@@ -75,7 +72,7 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
       .withUniqueGeneratedKeys[BoardDB]("id", "name")
       .transact(xa)
       .attemptSomeSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
-        ApiError(422, s"Name $name already taken")
+        UnprocessableEntity(s"Name $name already taken")
       }
       .flatMap {
         case Right(tread) => Applicative[F].pure(Right(tread))
@@ -94,12 +91,12 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
       .query[EnrichedTopicDB]
       .to[List]
       .transact(xa)
-      .map(_.asRight)
       .map {
-        case Left(_: InvariantViolation) => Left(ApiError(404, s"Topic with id=$id not found"))
-        case Left(_)                     => Left(ApiError(500, "Unexpected error"))
-        case Right(topic)                => Right(topic)
+        case Nil => Left(NotFound(s"Topic with id $id not found"))
+        case topics => Right(topics)
       }
 
   override def deleteTopic(topicId: Long): F[Unit] = (sql"DELETE FROM topics " ++ whereAnd(fr"id=$topicId")).update.run.transact(xa).void
+
+  override def getCountPostsById(ids: List[Long]): F[Int] = sql"SELECT count(*) FROM posts WHERE id = ANY($ids)".query[Int].unique.transact(xa)
 }

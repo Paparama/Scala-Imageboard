@@ -4,8 +4,8 @@ import cats.Applicative
 import cats.effect.Sync
 import cats.implicits._
 import ru.dins.scalashool.imageboard.db.PostgresStorage
-import ru.dins.scalashool.imageboard.models.ResponseModels.{ApiError, BoardCreateBody, BoardResponse, ListOfBoardsResponse, SuccessCreation}
-import ru.dins.scalashool.imageboard.models.ModelConverter
+import ru.dins.scalashool.imageboard.models.ResponseModels.{BoardCreateBody, BoardResponse, ListOfBoardsResponse, SuccessCreation}
+import ru.dins.scalashool.imageboard.models.{ApiError, ModelConverter}
 
 trait TapirBoardAdapter[F[_]] {
   def getBoard(id: Long): F[Either[ApiError, BoardResponse]]

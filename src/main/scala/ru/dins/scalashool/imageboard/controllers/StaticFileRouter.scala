@@ -12,7 +12,7 @@ object StaticFileRouter {
     val dsl = new Http4sDsl[F] {}
     import dsl._
     HttpRoutes.of[F] {
-      case request@GET -> Root /"uploadedFiles"/topicId/uuid/fileName if List(".png", ".jpeg").exists(fileName.endsWith)  =>
+      case request@GET -> Root /topicId/uuid/fileName if List(".png", ".jpeg").exists(fileName.endsWith)  =>
         StaticFile
           .fromFile(new File(s"uploadedFiles/$topicId/$uuid/$fileName"), blocker, Some(request))
           .getOrElseF(NotFound())
