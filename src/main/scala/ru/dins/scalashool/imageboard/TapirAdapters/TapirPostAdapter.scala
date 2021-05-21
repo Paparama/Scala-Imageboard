@@ -59,10 +59,13 @@ object TapirPostAdapter {
     private def getMediaHeader(body: PostCreationBody): String = body.images.header("Content-Type").getOrElse("not found")
 
     private def checkMediaHeader(body: PostCreationBody): Boolean = {
-      getMediaHeader(body) match {
-        case  "image/jpeg" => true
-        case  "image/png" => true
-      }
+      if (body.images.body.nonEmpty) {
+        getMediaHeader(body) match {
+          case "image/jpeg" => true
+          case "image/png" => true
+          case _ => false
+        }
+      } else true
     }
 
     private def deleteFromFileSystem(topicId: Long): F[Unit] = Applicative[F].pure(new Directory(Path.of(s"uploadedFiles/$topicId").toFile).deleteRecursively()).void
