@@ -45,7 +45,7 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
     refsDB <- Update[(Long, String, Long)](
       """INSERT INTO post_references (reference_to, text, post_id) values (?, ?, ?)""",
     ).updateMany(refs.collect(it => (it._1, it._2, post.id)))
-    _ <- sql"""UPDATE topics SET last_msg_created_time = ${post.createdAt}""".update
+    _ <- sql"""UPDATE topics SET last_msg_created_time = ${post.createdAt} WHERE id = ${post.topicId}""".update
       .withUniqueGeneratedKeys[TopicDB]("id", "name", "board_id", "last_msg_created_time")
   } yield (post, images, refsDB)).transact(xa)
 

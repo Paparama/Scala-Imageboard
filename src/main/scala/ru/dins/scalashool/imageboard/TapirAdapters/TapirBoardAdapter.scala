@@ -9,7 +9,7 @@ import ru.dins.scalashool.imageboard.models.ModelConverter
 
 trait TapirBoardAdapter[F[_]] {
   def getBoard(id: Long): F[Either[ApiError, BoardResponse]]
-  def getBoards(): F[Either[ApiError, ListOfBoardsResponse]]
+  def getBoards: F[Either[ApiError, ListOfBoardsResponse]]
   def addBoard(body: BoardCreateBody): F[Either[ApiError, SuccessCreation]]
 }
 
@@ -25,7 +25,7 @@ object TapirBoardAdapter {
       case Right(board) =>  Applicative[F].pure(Right(SuccessCreation(s"Board with name ${board.name} was created")))
     }
 
-    override def getBoards(): F[Either[ApiError, ListOfBoardsResponse]] = storage.getBoards.flatMap { boardList =>
+    override def getBoards: F[Either[ApiError, ListOfBoardsResponse]] = storage.getBoards.flatMap { boardList =>
     Applicative[F].pure(modelConverter.convertBoardListDBToResponseListOfBoards(boardList).asRight)
     }
   }

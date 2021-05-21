@@ -28,18 +28,19 @@ object Routs {
     val addTreadRoute    = Http4sServerInterpreter.toRoutes(TopicApi.addTopic)(tapirTreadService.addTopic)
 
     val getBoardRoute    = Http4sServerInterpreter.toRoutes(BoardApi.getBoard)(tapirBoardAdapter.getBoard)
+    val getBoardsRoute    = Http4sServerInterpreter.toRoutes(BoardApi.getBoards)(_ => tapirBoardAdapter.getBoards)
     val addBoardRoute    = Http4sServerInterpreter.toRoutes(BoardApi.addBoard)(tapirBoardAdapter.addBoard)
 
     val topicRoutsList = List(TopicApi.getTopic, TopicApi.addTopic)
     val postRoutsList  = List(PostApi.addPost)
-    val boardRoutsList = List(BoardApi.getBoard, BoardApi.addBoard)
+    val boardRoutsList = List(BoardApi.getBoard, BoardApi.addBoard, BoardApi.getBoards)
 
     val docs = OpenAPIDocsInterpreter.toOpenAPI(topicRoutsList ++ postRoutsList ++ boardRoutsList, "Image Board API", "1.0")
 
     val swagger = new SwaggerHttp4s(docs.toYaml)
 
     Router(
-      "/" -> (addPostRoute <+> getTreadRoute <+>
+      "/" -> (addPostRoute <+> getTreadRoute <+> getBoardsRoute <+>
         addTreadRoute  <+> getBoardRoute <+> addBoardRoute),
       "/swagger" -> swagger.routes, // http://localhost:8080/swagger/docs
     ).orNotFound
