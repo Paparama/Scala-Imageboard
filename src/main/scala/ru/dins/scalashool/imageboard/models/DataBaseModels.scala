@@ -22,10 +22,10 @@ object DataBaseModels {
   )
 
   case class PostDB(
-      id: Long,
-      text: String,
-      created_at: LocalDateTime,
-      topic_id: Long,
+                     id: Long,
+                     text: String,
+                     createdAt: LocalDateTime,
+                     topicId: Long,
   )
 
   case class EnrichedPostDB(
@@ -70,10 +70,10 @@ object DataBaseModels {
   )
 
   case class BoardWithTopicDB(
-      id: Long,
-      name: String,
-      topic_id: Option[Long],
-      topic_name: Option[String],
+                               id: Long,
+                               name: String,
+                               topicId: Option[Long],
+                               topicName: Option[String],
   )
 
 }

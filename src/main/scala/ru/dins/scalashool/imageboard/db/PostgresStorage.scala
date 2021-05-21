@@ -117,6 +117,7 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
     post <- sql"""INSERT INTO posts (text, topic_id, created_at) values ($text, $topicId, current_timestamp)""".update.withUniqueGeneratedKeys[PostDB]("id", "text", "created_at", "topic_id")
     images <- Update[(String, Long)]("""INSERT INTO images (path, post_id) values (?, ?)""").updateMany(imagesPath.zipAll(List(post.id), "", post.id))
     refsDB <- Update[(Long, String, Long)]("""INSERT INTO post_references (reference_to, text, post_id) values (?, ?, ?)""").updateMany(refs.collect { it => (it._1, it._2, post.id)})
+    _ <- sql"""UPDATE topics SET last_msg_created_time = ${post.createdAt}""".update.withUniqueGeneratedKeys[TopicDB]("id", "name", "board_id", "last_msg_created_time")
   } yield (post, images, refsDB)).transact(xa)
 
   override def createImage(path: String, postId: Long): F[ImageDB] =
@@ -204,7 +205,7 @@ case class PostgresStorage[F[_]: Sync](xa: Aux[F, Unit]) extends Storage[F] {
         |    LEFT JOIN images i on p.id = i.post_id
         |    LEFT JOIN post_references prTo on p.id = prTo.post_id
         |    LEFT JOIN post_references prFrom on p.id = prFrom.reference_to""".stripMargin
-    ++ whereAnd(fr"t.id=$id")).query[EnrichedTopicDB]
+    ++ whereAnd(fr"t.id=$id")  ++ fr"ORDER BY p.created_at").query[EnrichedTopicDB]
     .to[List]
     .transact(xa)
     .map(_.asRight)
